@@ -361,7 +361,7 @@
     </div>
    </div>
 
-   <!-- Exam Review (Pembahasan) -->
+   <!-- Exam Review (Pembahasan - Horizontal Layout) -->
    <div id="view-exam-review" class="view">
     <div class="flex flex-col md:flex-row items-center justify-between mb-4 modern-card rounded-xl p-4 shadow-2xl bg-slate-800 border border-amber-500 gap-4">
      <h3 class="font-bold text-amber-400 text-xl flex-1 drop-shadow m-0 text-center md:text-left">Detail Pengerjaan & Pembahasan</h3>
@@ -386,9 +386,13 @@
       </div>
 
       <!-- MAIN CONTENT -->
-      <div class="md:col-span-3 order-1 md:order-2">
-        <div class="modern-card rounded-xl p-6 shadow-2xl max-h-[75vh] overflow-y-auto scroll-smooth" id="review-list-container">
-          <div id="review-list" class="space-y-6 text-gray-800"></div>
+      <div class="md:col-span-3 order-1 md:order-2 flex flex-col justify-between">
+        <div class="modern-card rounded-xl p-6 shadow-2xl overflow-y-auto scroll-smooth" id="review-single-container">
+          <div id="review-content" class="text-gray-800"></div>
+        </div>
+        <div class="flex justify-between mt-4 gap-4">
+         <button id="btn-prev-review" class="px-5 py-2.5 bg-slate-700 text-amber-300 rounded-lg font-medium hover:bg-slate-600 disabled:opacity-40 transition">Sebelumnya</button> 
+         <button id="btn-next-review" class="px-5 py-2.5 gradient-btn text-slate-900 rounded-lg font-medium transition">Selanjutnya</button>
         </div>
       </div>
     </div>
@@ -405,6 +409,19 @@
       <div class="flex gap-2">
         <button id="btn-pkg-pin-submit" class="flex-1 py-2.5 gradient-btn text-slate-900 rounded-lg font-bold shadow-md">Buka Ujian</button>
         <button id="btn-pkg-pin-cancel" class="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DOWNLOAD PDF -->
+  <div id="modal-download-pdf" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full text-gray-800">
+      <h4 class="font-bold text-lg mb-1 text-slate-900 flex items-center gap-2"><i data-lucide="download" class="text-blue-600" style="width:20px;height:20px"></i> Unduh Paket Soal</h4>
+      <p class="text-sm text-gray-500 mb-4">Pilih format unduhan PDF yang Anda inginkan.</p>
+      <div class="flex flex-col gap-3">
+        <button onclick="window.processDownloadPDF('soal')" class="w-full py-2.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-bold shadow-sm border border-blue-300">Unduh Soal Saja</button>
+        <button onclick="window.processDownloadPDF('pembahasan')" class="w-full py-2.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg font-bold shadow-sm border border-green-300">Unduh + Pembahasan & Jawaban</button>
+        <button onclick="document.getElementById('modal-download-pdf').classList.add('hidden')" class="w-full mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Batal</button>
       </div>
     </div>
   </div>
@@ -482,7 +499,6 @@
     // REVIEW NAVIGATION GLOBALS
     window.currentReviewFilter = 'ALL';
     window.currentActiveReviewIndex = 0;
-    let reviewObserver = null;
 
     window.filterReviewNav = function(type) {
       window.currentReviewFilter = type;
@@ -530,15 +546,11 @@
     };
 
     window.jumpToReviewQuestion = function(index) {
-      const el = document.getElementById('review-q-' + index);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.highlightActiveReviewNav(index);
-      }
+      window.currentActiveReviewIndex = index;
+      window.renderReviewSingleQuestion();
     };
 
     window.highlightActiveReviewNav = function(index) {
-      window.currentActiveReviewIndex = index;
       document.querySelectorAll('.review-nav-btn').forEach(btn => {
         btn.classList.remove('ring-4', 'ring-amber-400', 'scale-110', 'z-10');
       });
@@ -548,40 +560,123 @@
       }
     };
     
-    function setupReviewObserver() {
-      if (reviewObserver) reviewObserver.disconnect();
-      const container = document.getElementById('review-list-container');
-      if(!container) return;
-      const options = {
-        root: container,
-        rootMargin: '-10% 0px -50% 0px', 
-        threshold: 0
-      };
-      
-      reviewObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const idx = parseInt(entry.target.getAttribute('data-index'));
-            window.highlightActiveReviewNav(idx);
-          }
-        });
-      }, options);
-      
-      document.querySelectorAll('.review-q-block').forEach(el => {
-        reviewObserver.observe(el);
-      });
+    // FORMATTING TEXT
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    
+    function renderRichText(s) {
+        if(!s) return '';
+        let escaped = esc(s);
+        escaped = escaped.replace(/&lt;b&gt;/gi, '<b>').replace(/&lt;\/b&gt;/gi, '</b>');
+        escaped = escaped.replace(/&lt;i&gt;/gi, '<i>').replace(/&lt;\/i&gt;/gi, '</i>');
+        escaped = escaped.replace(/&lt;u&gt;/gi, '<u>').replace(/&lt;\/u&gt;/gi, '</u>');
+        escaped = escaped.replace(/\n/g, '<br>');
+        return escaped;
     }
+
+    window.formatText = function(btn, inputName) {
+       const container = btn.closest('[data-question-form]');
+       const input = container.querySelector(`[name="${inputName}"]`);
+       if(!input) return;
+       const start = input.selectionStart;
+       const end = input.selectionEnd;
+       const tag = btn.dataset.tag;
+       const text = input.value;
+       const selectedText = text.substring(start, end);
+       const before = text.substring(0, start);
+       const after = text.substring(end);
+       input.value = `${before}<${tag}>${selectedText}</${tag}>${after}`;
+       input.focus();
+       input.setSelectionRange(start + tag.length + 2, end + tag.length + 2);
+    };
+
+    // PDF DOWNLOADER
+    let downloadTargetPkgId = null;
+    window.downloadPkgPDF = function(id) {
+       downloadTargetPkgId = id;
+       document.getElementById('modal-download-pdf').classList.remove('hidden');
+    };
+
+    window.processDownloadPDF = function(mode) {
+       const pkg = packages.find(p => p.__backendId === downloadTargetPkgId);
+       if (!pkg) return;
+       document.getElementById('modal-download-pdf').classList.add('hidden');
+       
+       try {
+         const qs = JSON.parse(pkg.questions_data || '[]');
+         if (qs.length === 0) { alert('Paket tidak memiliki soal.'); return; }
+         
+         const { jsPDF } = window.jspdf;
+         const doc = new jsPDF();
+         
+         let y = 20;
+         const margin = 15;
+         const pageWidth = doc.internal.pageSize.width;
+         const maxW = pageWidth - margin * 2;
+
+         const stripHTML = (html) => {
+             let tmp = document.createElement("DIV");
+             tmp.innerHTML = html;
+             return tmp.textContent || tmp.innerText || "";
+         };
+         
+         doc.setFontSize(16); doc.setFont("helvetica", "bold");
+         doc.text(`Paket Soal: ${pkg.package_name}`, margin, y);
+         y += 10;
+         doc.setFontSize(10); doc.setFont("helvetica", "normal");
+         doc.text(`Durasi: ${pkg.duration_minutes} Menit | Jumlah Soal: ${qs.length}`, margin, y);
+         y += 15;
+         
+         qs.forEach((q, i) => {
+             if (y > 270) { doc.addPage(); y = 20; }
+             
+             doc.setFont("helvetica", "bold"); doc.text(`Soal ${i + 1} (${q.type})`, margin, y); y += 6;
+             doc.setFont("helvetica", "normal");
+             
+             const qText = stripHTML(q.question || '');
+             const splitTitle = doc.splitTextToSize(qText, maxW);
+             doc.text(splitTitle, margin, y); y += (splitTitle.length * 5) + 4;
+             
+             (q.options || []).forEach((opt, oIdx) => {
+                 if (y > 280) { doc.addPage(); y = 20; }
+                 const isCorrect = (mode === 'pembahasan' && q.answer === oIdx && q.type !== 'TKP');
+                 const isTKP = (mode === 'pembahasan' && q.type === 'TKP');
+                 
+                 if (isCorrect) { doc.setFont("helvetica", "bold"); doc.setTextColor(0, 128, 0); } 
+                 else if (isTKP) { doc.setFont("helvetica", "italic"); doc.setTextColor(0, 0, 255); }
+                 else { doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0); }
+                 
+                 let optPrefix = `${String.fromCharCode(65 + oIdx)}. `;
+                 let optSuffix = isTKP ? ` (Poin: ${q.points[oIdx]})` : '';
+                 let optText = stripHTML(opt) + optSuffix;
+                 
+                 const splitOpt = doc.splitTextToSize(optPrefix + optText, maxW - 5);
+                 doc.text(splitOpt, margin + 5, y); y += (splitOpt.length * 5) + 2;
+                 doc.setTextColor(0, 0, 0); 
+             });
+             
+             if (mode === 'pembahasan' && q.explanation) {
+                 y += 2;
+                 if (y > 280) { doc.addPage(); y = 20; }
+                 doc.setFont("helvetica", "italic"); doc.setTextColor(100, 100, 100);
+                 const expText = "Pembahasan: " + stripHTML(q.explanation);
+                 const splitExp = doc.splitTextToSize(expText, maxW - 5);
+                 doc.text(splitExp, margin + 5, y); y += (splitExp.length * 5) + 4;
+                 doc.setTextColor(0, 0, 0);
+             }
+             y += 5;
+         });
+         
+         doc.save(`Paket_${pkg.package_name.replace(/\s+/g, '_')}_${mode}.pdf`);
+       } catch (e) { console.error(e); alert("Gagal menghasilkan PDF."); }
+    };
 
     function showView(id) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       currentView = id;
       
-      // Tampilkan/Sembunyikan Menu Keluar (Home/Header Bar) & Tombol Mengambang Admin
       const isLoggedOrActive = (id !== 'view-landing' && id !== 'view-admin-pin' && id !== 'view-student-entry');
       document.getElementById('btn-home').classList.toggle('hidden', !isLoggedOrActive);
-      
-      // Floating admin button hanya tampil di landing
       document.getElementById('go-admin').classList.toggle('hidden', id !== 'view-landing');
     }
 
@@ -592,7 +687,6 @@
       activeSessions = allData.filter(d => d.type === 'session');
       let settings = allData.find(d => d.type === 'settings');
       
-      // Update Dropdown Filter Paket
       const filterPkgEl = document.getElementById('filter-res-pkg');
       const currentPkgFilter = filterPkgEl.value;
       filterPkgEl.innerHTML = '<option value="">Semua Paket</option>' + packages.map(p => `<option value="${p.__backendId}">${esc(p.package_name)}</option>`).join('');
@@ -607,21 +701,12 @@
         document.querySelector('[data-template-id="landing-sub"]').textContent = settings.landing_sub || defaultTexts["landing-sub"];
 
         const logoEl = document.getElementById('landing-logo');
-        if (settings.app_logo) {
-          logoEl.src = settings.app_logo;
-          logoEl.classList.remove('hidden');
-        } else {
-          logoEl.classList.add('hidden');
-          logoEl.src = '';
-        }
+        if (settings.app_logo) { logoEl.src = settings.app_logo; logoEl.classList.remove('hidden'); } 
+        else { logoEl.classList.add('hidden'); logoEl.src = ''; }
 
-        // Apply Custom Background Image
         const bgLayer = document.getElementById('app-bg-layer');
-        if (settings.app_bg) {
-          bgLayer.style.backgroundImage = `url(${settings.app_bg})`;
-        } else {
-          bgLayer.style.backgroundImage = 'none';
-        }
+        if (settings.app_bg) bgLayer.style.backgroundImage = `url(${settings.app_bg})`;
+        else bgLayer.style.backgroundImage = 'none';
 
         document.getElementById('setting-app-title').value = settings.app_title || defaultTexts["app-title"];
         document.getElementById('setting-landing-heading').value = settings.landing_heading || defaultTexts["landing-heading"];
@@ -640,8 +725,6 @@
         document.getElementById('app-bg-layer').style.backgroundImage = 'none';
       }
     }
-
-    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
@@ -695,7 +778,7 @@
           pkgNames = ids.map(id => { const p = packages.find(x => x.__backendId === id); return p ? p.package_name : ''; }).filter(Boolean); 
         } catch {}
         
-        const isActive = s.is_active !== false; // Default true if undefined
+        const isActive = s.is_active !== false; 
         const statusBadge = isActive 
           ? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold border border-green-300">Aktif</span>` 
           : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold border border-red-300">Nonaktif</span>`;
@@ -722,7 +805,6 @@
       const el = document.getElementById('results-list');
       const noEl = document.getElementById('no-results');
       
-      // Filter parameters
       const filterName = document.getElementById('filter-res-name').value.toLowerCase();
       const filterPkg = document.getElementById('filter-res-pkg').value;
       const filterDate = document.getElementById('filter-res-date').value;
@@ -826,7 +908,6 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Kompresi kualitas JPG
           const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
           document.getElementById('setting-bg-val').value = dataUrl;
           alert("Background sukses diproses. Silakan klik 'Simpan Pengaturan'.");
@@ -836,7 +917,6 @@
       reader.readAsDataURL(file);
     };
 
-    // --- STUDENT MANAGEMENT & LOGIC ---
     function renderPackageCheckboxes(selectedIds) {
       const el = document.getElementById('sm-packages-checkboxes');
       if (packages.length === 0) { el.innerHTML = '<p class="text-xs text-gray-500">Belum ada paket ujian yang tersedia</p>'; return; }
@@ -873,7 +953,6 @@
       if (res.isOk) { showView('view-admin'); renderStudentList(); } else { errEl.textContent = 'Gagal menyimpan'; errEl.classList.remove('hidden'); }
     };
 
-    // --- UJIAN SISWA (STUDENT ENTRY LOGIC) ---
     document.getElementById('go-student').onclick = () => showView('view-student-entry');
     document.getElementById('form-student-entry').onsubmit = async (e) => {
       e.preventDefault();
@@ -887,8 +966,6 @@
       loggedInStudent = student; 
       document.getElementById('student-name').value = ''; 
       document.getElementById('student-pin').value = '';
-      
-      // Langsung menuju dashboard pengerjaan
       showPackageSelection();
     };
 
@@ -1072,15 +1149,38 @@
 
     window.reindexQuestionLabels = function() {
       const blocks = document.getElementById('questions-container').querySelectorAll('[data-question-form]');
-      blocks.forEach((block, idx) => { const lbl = block.querySelector('.q-title-label'); if(lbl) lbl.textContent = `Soal #${idx + 1}`; });
+      const colors = ['border-blue-500', 'border-green-500', 'border-amber-500', 'border-purple-500', 'border-rose-500', 'border-teal-500'];
+      blocks.forEach((block, idx) => {
+        const lbl = block.querySelector('.q-title-label'); 
+        const c = colors[idx % colors.length];
+        if(lbl) { 
+            lbl.textContent = `Soal #${idx + 1}`; 
+            lbl.className = `font-bold q-title-label ${c.replace('border-', 'text-')}`;
+        }
+        
+        // Membersihkan class border warna sebelumnya
+        colors.forEach(color => block.classList.remove(color));
+        
+        // Menambahkan border kiri 4px dan warna spesifik pada tiap nomor agar mudah dibedakan
+        block.classList.add('border-l-4', c);
+      });
     };
+
+    const toolbarHtml = (name) => `
+      <div class="flex gap-1 mb-1">
+        <button type="button" data-tag="b" onclick="window.formatText(this, '${name}')" class="px-2 py-1 bg-gray-200 text-gray-800 text-xs font-bold rounded hover:bg-gray-300">B</button>
+        <button type="button" data-tag="i" onclick="window.formatText(this, '${name}')" class="px-2 py-1 bg-gray-200 text-gray-800 text-xs italic rounded hover:bg-gray-300">I</button>
+        <button type="button" data-tag="u" onclick="window.formatText(this, '${name}')" class="px-2 py-1 bg-gray-200 text-gray-800 text-xs underline rounded hover:bg-gray-300">U</button>
+      </div>
+    `;
 
     function addQuestionForm(data = null) {
       const container = document.getElementById('questions-container');
       const id = 'q-' + Date.now() + Math.random().toString(36).substr(2, 5);
       const div = document.createElement('div');
       div.setAttribute('data-question-form', ''); div.setAttribute('data-qid', id);
-      div.className = 'modern-card bg-gray-50 rounded-lg p-5 border border-gray-200 shadow-sm mt-3';
+      // Kelas default sebelum diupdate border oleh reindexQuestionLabels
+      div.className = 'modern-card bg-white rounded-lg p-5 border border-gray-200 shadow-sm mt-4 transition-colors';
       div.innerHTML = `
         <div class="flex items-center justify-between mb-4 border-b pb-2">
           <h4 class="font-bold text-gray-800 q-title-label">Soal #</h4>
@@ -1110,27 +1210,39 @@
               </select>
             </div>
           </div>
-          <div class="bg-white p-3 rounded-lg border border-gray-200">
+          <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
             <label class="text-xs font-semibold text-gray-700 uppercase mb-2 block">Upload Gambar Soal (Opsional)</label>
             <input type="file" accept="image/png, image/jpeg, image/jpg" onchange="window.handleImageUpload(event, '${id}')" class="w-full text-sm">
             <input type="hidden" name="q-image" id="img-val-${id}" value="${data?.image||''}">
             <img id="img-preview-${id}" src="${data?.image||''}" class="mt-3 max-h-32 rounded border border-gray-300 object-contain ${data?.image?'':'hidden'}">
           </div>
           <div>
-            <label class="text-xs font-semibold text-gray-700 uppercase">Teks Pertanyaan</label>
-            <textarea name="q-text" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 bg-white">${data?.question||''}</textarea>
+            <div class="flex items-center justify-between mb-1">
+               <label class="text-xs font-semibold text-gray-700 uppercase">Teks Pertanyaan</label>
+               ${toolbarHtml('q-text')}
+            </div>
+            <textarea name="q-text" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">${(data?.question||'').replace(/"/g, '&quot;')}</textarea>
           </div>
           <div>
-            <label class="text-xs font-semibold text-blue-700 uppercase">💡 Materi Pembahasan Soal (opsional)</label>
-            <textarea name="q-explanation" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 bg-white">${data?.explanation||''}</textarea>
+            <div class="flex items-center justify-between mb-1">
+               <label class="text-xs font-semibold text-blue-700 uppercase">💡 Materi Pembahasan (opsional)</label>
+               ${toolbarHtml('q-explanation')}
+            </div>
+            <textarea name="q-explanation" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">${(data?.explanation||'').replace(/"/g, '&quot;')}</textarea>
           </div>
-          <div class="space-y-2 pt-2 border-t border-gray-200">
+          <div class="space-y-3 pt-2 border-t border-gray-200">
             <label class="text-xs font-semibold text-gray-700 uppercase">Pilihan Ganda & Bobot Poin</label>
             ${['A','B','C','D','E'].map((letter, i) => `
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-gray-700 w-6">${letter}.</span>
-                <input name="q-opt-${letter.toLowerCase()}" class="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm bg-white text-gray-900" value="${esc(data?.options?.[i]||'')}">
-                <input name="q-pts-${letter.toLowerCase()}" type="number" min="0" class="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50 text-center font-bold text-gray-900" value="${data?.points?.[i]||0}">
+              <div class="mb-3">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-bold text-gray-700 w-6">${letter}.</span>
+                  ${toolbarHtml('q-opt-' + letter.toLowerCase())}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-6"></span>
+                  <input name="q-opt-${letter.toLowerCase()}" class="flex-1 border border-gray-300 rounded px-3 py-1.5 text-sm bg-white text-gray-900" value="${(data?.options?.[i]||'').replace(/"/g, '&quot;')}">
+                  <input name="q-pts-${letter.toLowerCase()}" type="number" min="0" class="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm bg-gray-50 text-center font-bold text-gray-900" value="${data?.points?.[i]||0}">
+                </div>
               </div>
             `).join('')}
           </div>
@@ -1309,9 +1421,9 @@
       const q = examQuestions[examIndex]; if (!q) return; renderNavGrid();
       document.getElementById('exam-q-type').textContent = `${q.type || 'Soal'} - Nomor ${examIndex+1}`; document.getElementById('exam-progress').textContent = `${examIndex+1} dari ${examQuestions.length}`;
       const imgEl = document.getElementById('exam-q-image'); if (q.image) { imgEl.src = q.image; imgEl.classList.remove('hidden'); } else { imgEl.classList.add('hidden'); imgEl.src = ''; }
-      document.getElementById('exam-q-text').textContent = q.question || '';
+      document.getElementById('exam-q-text').innerHTML = renderRichText(q.question || '');
       document.getElementById('exam-options').innerHTML = (q.options||[]).map((o,i) => `
-        <button type="button" onclick="window.selectAnswer(${i})" class="w-full text-left px-5 py-4 rounded-xl border-2 ${examAnswers[examIndex]===i?'border-amber-500 bg-amber-50 shadow-md font-bold text-slate-900':'border-gray-200 hover:border-amber-300 text-gray-700 bg-white'} transition-all"><div class="flex items-start"><span class="w-8 font-bold text-amber-600">${String.fromCharCode(65+i)}.</span><span class="flex-1">${esc(o)}</span></div></button>`).join('');
+        <button type="button" onclick="window.selectAnswer(${i})" class="w-full text-left px-5 py-4 rounded-xl border-2 ${examAnswers[examIndex]===i?'border-amber-500 bg-amber-50 shadow-md font-bold text-slate-900':'border-gray-200 hover:border-amber-300 text-gray-700 bg-white'} transition-all"><div class="flex items-start"><span class="w-8 font-bold text-amber-600">${String.fromCharCode(65+i)}.</span><span class="flex-1">${renderRichText(o)}</span></div></button>`).join('');
       document.getElementById('btn-prev-q').disabled = examIndex === 0;
       if (examIndex === examQuestions.length - 1) { document.getElementById('btn-next-q').classList.add('hidden'); document.getElementById('btn-submit-exam').classList.remove('hidden'); } else { document.getElementById('btn-next-q').classList.remove('hidden'); document.getElementById('btn-submit-exam').classList.add('hidden'); }
     }
@@ -1337,11 +1449,28 @@
       clearInterval(examTimer); localStorage.removeItem('saved_exam_progress');
       document.getElementById('btn-submit-exam').innerText = 'Mengirim Jawaban...'; document.getElementById('btn-submit-exam').disabled = true;
 
+      // Inisialisasi perhitungan skor & jumlah benar/salah
       let scoreTWK=0, scoreTIU=0, scoreTKP=0;
+      let bTWK=0, sTWK=0, bTIU=0, sTIU=0, bTKP=0, sTKP=0;
+      
       examQuestions.forEach((q,i) => {
-        const pts = q.points?.[examAnswers[i]] || 0;
-        if (q.type==='TKP') { scoreTKP += pts; } else if (examAnswers[i] === q.answer) { if (q.type==='TWK') scoreTWK += pts; else if (q.type==='TIU') scoreTIU += pts; }
+        const uAns = examAnswers[i];
+        const pts = q.points?.[uAns] || 0;
+        
+        if (q.type === 'TKP') { 
+            scoreTKP += pts; 
+            if (pts === 5) bTKP++; else sTKP++; // Poin Maksimal = Benar
+        } else {
+            if (uAns === q.answer && uAns !== -1 && uAns !== undefined) { 
+                if (q.type === 'TWK') { scoreTWK += pts; bTWK++; }
+                else if (q.type === 'TIU') { scoreTIU += pts; bTIU++; } 
+            } else {
+                if (q.type === 'TWK') sTWK++;
+                else if (q.type === 'TIU') sTIU++;
+            }
+        }
       });
+      
       const total = scoreTWK + scoreTIU + scoreTKP;
       
       await window.dataSdk.create({ type:'result', student_name: studentName, package_id: examPkg.__backendId, student_pin: loggedInStudent?.student_pin || '', score_twk: scoreTWK, score_tiu: scoreTIU, score_tkp: scoreTKP, score_total: total, completed_at: new Date().toISOString(), student_answers: JSON.stringify(examAnswers) });
@@ -1350,11 +1479,42 @@
       const twkMin = examPkg.twk_min !== undefined && examPkg.twk_min !== '' ? examPkg.twk_min : 0; const tiuMin = examPkg.tiu_min !== undefined && examPkg.tiu_min !== '' ? examPkg.tiu_min : 0; const tkpMin = examPkg.tkp_min !== undefined && examPkg.tkp_min !== '' ? examPkg.tkp_min : 0;
       const pass = scoreTWK >= twkMin && scoreTIU >= tiuMin && scoreTKP >= tkpMin;
       
+      // Inject detail hasil nilai dengan info benar/salah per aspek
       document.getElementById('result-scores').innerHTML = `
-        <div class="flex justify-between p-4 mb-2 rounded-xl border ${scoreTWK >= twkMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800"><span class="font-medium text-gray-600">Skor TWK</span><div><span class="font-bold text-2xl">${scoreTWK}</span><span class="text-sm text-gray-500"> / PG: ${twkMin}</span></div></div>
-        <div class="flex justify-between p-4 mb-2 rounded-xl border ${scoreTIU >= tiuMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800"><span class="font-medium text-gray-600">Skor TIU</span><div><span class="font-bold text-2xl">${scoreTIU}</span><span class="text-sm text-gray-500"> / PG: ${tiuMin}</span></div></div>
-        <div class="flex justify-between p-4 mb-2 rounded-xl border ${scoreTKP >= tkpMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800"><span class="font-medium text-gray-600">Skor TKP</span><div><span class="font-bold text-2xl">${scoreTKP}</span><span class="text-sm text-gray-500"> / PG: ${tkpMin}</span></div></div>
-        <div class="flex justify-between p-5 mt-4 rounded-xl bg-gradient-to-r from-amber-100 to-amber-200 border border-amber-300 shadow-sm text-gray-900"><span class="font-bold text-lg">Skor Total SKD</span><span class="font-black text-3xl text-amber-700">${total}</span></div>`;
+        <div class="flex flex-col p-4 mb-3 rounded-xl border ${scoreTWK >= twkMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800">
+           <div class="flex justify-between items-center mb-2">
+             <span class="font-bold text-gray-700">Skor TWK</span>
+             <div><span class="font-bold text-2xl">${scoreTWK}</span><span class="text-sm text-gray-500"> / PG: ${twkMin}</span></div>
+           </div>
+           <div class="flex gap-2 text-xs">
+             <span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold shadow-sm">Benar: ${bTWK}</span>
+             <span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold shadow-sm">Salah/Kosong: ${sTWK}</span>
+           </div>
+        </div>
+        <div class="flex flex-col p-4 mb-3 rounded-xl border ${scoreTIU >= tiuMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800">
+           <div class="flex justify-between items-center mb-2">
+             <span class="font-bold text-gray-700">Skor TIU</span>
+             <div><span class="font-bold text-2xl">${scoreTIU}</span><span class="text-sm text-gray-500"> / PG: ${tiuMin}</span></div>
+           </div>
+           <div class="flex gap-2 text-xs">
+             <span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold shadow-sm">Benar: ${bTIU}</span>
+             <span class="bg-red-100 text-red-700 px-2 py-1 rounded font-bold shadow-sm">Salah/Kosong: ${sTIU}</span>
+           </div>
+        </div>
+        <div class="flex flex-col p-4 mb-3 rounded-xl border ${scoreTKP >= tkpMin?'bg-green-50 border-green-200':'bg-red-50 border-red-200'} text-gray-800">
+           <div class="flex justify-between items-center mb-2">
+             <span class="font-bold text-gray-700">Skor TKP</span>
+             <div><span class="font-bold text-2xl">${scoreTKP}</span><span class="text-sm text-gray-500"> / PG: ${tkpMin}</span></div>
+           </div>
+           <div class="flex gap-2 text-xs">
+             <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold shadow-sm">Benar (Poin Maksimal): ${bTKP}</span>
+             <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded font-bold shadow-sm">Kurang/Salah: ${sTKP}</span>
+           </div>
+        </div>
+        <div class="flex justify-between items-center p-5 mt-4 rounded-xl bg-gradient-to-r from-amber-100 to-amber-200 border border-amber-300 shadow-md text-gray-900">
+           <span class="font-bold text-lg">Skor Total SKD</span>
+           <span class="font-black text-3xl text-amber-800 drop-shadow-sm">${total}</span>
+        </div>`;
         
       document.getElementById('result-status').innerHTML = pass ? '<div class="py-3 bg-green-600 text-white rounded-lg shadow-lg">✓ MEMENUHI PASSING GRADE</div>' : '<div class="py-3 bg-red-600 text-white rounded-lg shadow-lg">✗ TIDAK MEMENUHI PASSING GRADE</div>';
       document.getElementById('btn-submit-exam').innerText = 'Kumpulkan Jawaban Selesai'; document.getElementById('btn-submit-exam').disabled = false;
@@ -1362,39 +1522,77 @@
     }
 
     function renderReview() {
-      document.getElementById('review-list').innerHTML = examQuestions.map((q, i) => {
-        const uAns = examAnswers[i]; const cAns = q.answer;
-        const optionsHtml = (q.options || []).map((opt, oIdx) => {
+      window.currentReviewFilter = 'ALL';
+      window.currentActiveReviewIndex = 0;
+      window.renderReviewNavGrid();
+      window.renderReviewSingleQuestion();
+    }
+
+    function getNextReviewIndex(direction) {
+       let idx = window.currentActiveReviewIndex + direction;
+       while (idx >= 0 && idx < examQuestions.length) {
+          if (window.currentReviewFilter === 'ALL' || examQuestions[idx].type === window.currentReviewFilter) {
+             return idx;
+          }
+          idx += direction;
+       }
+       return -1;
+    }
+
+    window.renderReviewSingleQuestion = function() {
+       const i = window.currentActiveReviewIndex;
+       const q = examQuestions[i];
+       if (!q) return;
+
+       const uAns = examAnswers[i]; 
+       const cAns = q.answer;
+       const optionsHtml = (q.options || []).map((opt, oIdx) => {
           let bgClass = "bg-gray-50 border-gray-200 text-gray-700"; let icon = "";
           if (q.type === 'TKP') {
             if (oIdx === uAns) bgClass = "bg-blue-100 border-blue-400 font-bold text-blue-900";
-            return `<div class="p-3 border rounded mt-2 ${bgClass}">${String.fromCharCode(65+oIdx)}. ${esc(opt)} <span class="float-right text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded font-bold shadow-sm">Poin: ${q.points[oIdx]}</span></div>`;
+            return `<div class="p-3 border rounded mt-2 ${bgClass}">${String.fromCharCode(65+oIdx)}. ${renderRichText(opt)} <span class="float-right text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded font-bold shadow-sm">Poin: ${q.points[oIdx]}</span></div>`;
           } else {
             if (oIdx === cAns) { bgClass = "bg-green-100 border-green-500 font-bold text-green-900"; icon = `<span class="float-right text-green-600 font-bold">✓ Kunci Jawaban</span>`; } 
             else if (oIdx === uAns && oIdx !== cAns) { bgClass = "bg-red-100 border-red-500 font-bold text-red-900"; icon = `<span class="float-right text-red-600 font-bold">✗ Jawaban Anda</span>`; }
-            return `<div class="p-3 border rounded mt-2 ${bgClass}">${String.fromCharCode(65+oIdx)}. ${esc(opt)} ${icon}</div>`;
+            return `<div class="p-3 border rounded mt-2 ${bgClass}">${String.fromCharCode(65+oIdx)}. ${renderRichText(opt)} ${icon}</div>`;
           }
-        }).join('');
-        return `
-          <div id="review-q-${i}" class="review-q-block border-b border-gray-300 pb-5 mb-5" data-index="${i}">
+       }).join('');
+
+       const html = `
+          <div id="review-q-${i}" class="review-q-block pb-2">
             <div class="flex justify-between items-center mb-3">
                <span class="font-bold text-sm bg-gray-200 px-3 py-1.5 rounded-lg text-gray-700 shadow-sm">Soal ${i+1} - ${q.type}</span>
                ${uAns === -1 || uAns === undefined ? '<span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Tidak Dijawab</span>' : ''}
             </div>
             ${q.image ? `<img src="${q.image}" class="max-h-40 object-contain mb-3 border p-1 rounded bg-white">` : ''}
-            <p class="font-semibold text-lg text-gray-800 mb-3 whitespace-pre-wrap">${esc(q.question)}</p>
+            <p class="font-semibold text-lg text-gray-800 mb-3 whitespace-pre-wrap">${renderRichText(q.question)}</p>
             <div>${optionsHtml}</div>
-            ${q.explanation ? `<div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-gray-800"><p class="font-bold text-amber-800 mb-1 flex items-center gap-1">💡 Ulasan Pembahasan:</p><p class="whitespace-pre-wrap">${esc(q.explanation)}</p></div>` : ''}
+            ${q.explanation ? `<div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-gray-800"><p class="font-bold text-amber-800 mb-1 flex items-center gap-1">💡 Ulasan Pembahasan:</p><p class="whitespace-pre-wrap">${renderRichText(q.explanation)}</p></div>` : ''}
           </div>`;
-      }).join('');
-      lucide.createIcons();
+       
+       document.getElementById('review-content').innerHTML = html;
+       lucide.createIcons();
+       window.highlightActiveReviewNav(i);
 
-      // Reset state filter & render navigasi
-      window.currentReviewFilter = 'ALL';
-      window.currentActiveReviewIndex = 0;
-      window.renderReviewNavGrid();
-      setupReviewObserver();
-    }
+       document.getElementById('btn-prev-review').disabled = (getNextReviewIndex(-1) === -1);
+       document.getElementById('btn-next-review').disabled = (getNextReviewIndex(1) === -1);
+    };
+
+    document.getElementById('btn-next-review').onclick = () => {
+       const nextIdx = getNextReviewIndex(1);
+       if (nextIdx !== -1) {
+          window.currentActiveReviewIndex = nextIdx;
+          renderReviewSingleQuestion();
+       }
+    };
+    
+    document.getElementById('btn-prev-review').onclick = () => {
+       const prevIdx = getNextReviewIndex(-1);
+       if (prevIdx !== -1) {
+          window.currentActiveReviewIndex = prevIdx;
+          renderReviewSingleQuestion();
+       }
+    };
 
     document.getElementById('btn-review-exam').onclick = () => { renderReview(); document.getElementById('btn-close-review').onclick = () => showView('view-exam-result'); showView('view-exam-review'); };
     
@@ -1408,7 +1606,6 @@
       } catch(e) { alert("Gagal memuat pembahasan."); }
     };
 
-    // Global Buttons & Logic Flow Logout
     document.getElementById('btn-back-pin').onclick = () => showView('view-landing');
     document.getElementById('btn-back-student').onclick = () => showView('view-landing');
     document.getElementById('btn-new-exam').onclick = () => { if (loggedInStudent) showPackageSelection(); else showView('view-student-entry'); };
