@@ -323,8 +323,16 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="md:col-span-1 order-2 md:order-1">
         <div class="modern-card rounded-xl p-4 shadow-2xl text-gray-800 h-full sticky top-24">
-          <h4 class="font-bold text-sm text-gray-700 uppercase mb-3 border-b pb-2 flex items-center gap-1"><i data-lucide="list-ordered" style="width:16px;height:16px"></i> Nomor Soal</h4>
-          <div id="exam-nav-grid" class="grid grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1"></div>
+          <h4 class="font-bold text-sm text-gray-700 uppercase mb-2 border-b pb-2 flex items-center gap-1"><i data-lucide="list-ordered" style="width:16px;height:16px"></i> Dashboard Soal</h4>
+          
+          <!-- DASHBOARD STATISTIK JAWABAN & RAGU-RAGU -->
+          <div id="exam-stats-dashboard" class="grid grid-cols-3 gap-1 text-center text-[10px] font-bold mb-3">
+              <div class="bg-green-100 text-green-700 p-1 rounded border border-green-300">Sudah: <span id="stat-sudah">0</span></div>
+              <div class="bg-gray-100 text-gray-600 p-1 rounded border border-gray-300">Belum: <span id="stat-belum">0</span></div>
+              <div class="bg-amber-100 text-amber-700 p-1 rounded border border-amber-400">Ragu: <span id="stat-ragu">0</span></div>
+          </div>
+
+          <div id="exam-nav-grid" class="grid grid-cols-5 gap-2 max-h-[340px] overflow-y-auto pr-1"></div>
         </div>
       </div>
 
@@ -336,8 +344,14 @@
          <div id="exam-options" class="space-y-3"></div>
         </div>
         
-        <div class="flex justify-between mt-4 gap-4">
+        <div class="flex flex-wrap justify-between mt-4 gap-4 items-center">
          <button id="btn-prev-q" class="px-5 py-2.5 bg-slate-700 text-amber-300 rounded-lg font-medium hover:bg-slate-600 disabled:opacity-40 transition" disabled>Sebelumnya</button> 
+         
+         <!-- CHECKBOX RAGU-RAGU -->
+         <label class="flex flex-1 justify-center md:flex-none items-center gap-2 cursor-pointer bg-amber-50 px-4 py-2.5 rounded-lg border border-amber-300 font-bold text-amber-700 shadow-sm hover:bg-amber-100 transition">
+            <input type="checkbox" id="cb-ragu" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer" onchange="window.toggleRagu()"> Ragu-Ragu
+         </label>
+
          <button id="btn-next-q" class="px-5 py-2.5 gradient-btn text-slate-900 rounded-lg font-medium transition">Selanjutnya</button>
         </div>
       </div>
@@ -491,7 +505,7 @@
     let currentAdminPin = '1234'; 
     let allData = [], packages = [], results = [], students = [], activeSessions = [];
     let currentView = 'view-landing', editingPkgId = null, editingStudentId = null, loggedInStudent = null;
-    let examPkg = null, examQuestions = [], examAnswers = [], examIndex = 0, examTimer = null, examTimeLeft = 0, studentName = '';
+    let examPkg = null, examQuestions = [], examAnswers = [], examDoubtful = [], examIndex = 0, examTimer = null, examTimeLeft = 0, studentName = '';
     let pendingPkgIdForPin = null;
     let recoveryChecked = false;
     let currentSessionId = null;
@@ -608,8 +622,10 @@
          const { jsPDF } = window.jspdf;
          const doc = new jsPDF();
          
-         let y = 20;
-         const margin = 15;
+         // SETUP MARGIN 20 DAN SPASI (LINE HEIGHT) 1.2
+         doc.setLineHeightFactor(1.2);
+         const margin = 20;
+         let y = margin;
          const pageWidth = doc.internal.pageSize.width;
          const maxW = pageWidth - margin * 2;
 
@@ -621,23 +637,24 @@
          
          doc.setFontSize(16); doc.setFont("helvetica", "bold");
          doc.text(`Paket Soal: ${pkg.package_name}`, margin, y);
-         y += 10;
+         y += 8;
          doc.setFontSize(10); doc.setFont("helvetica", "normal");
          doc.text(`Durasi: ${pkg.duration_minutes} Menit | Jumlah Soal: ${qs.length}`, margin, y);
-         y += 15;
+         y += 12;
          
          qs.forEach((q, i) => {
-             if (y > 270) { doc.addPage(); y = 20; }
+             if (y > 275) { doc.addPage(); y = margin; }
              
-             doc.setFont("helvetica", "bold"); doc.text(`Soal ${i + 1} (${q.type})`, margin, y); y += 6;
+             doc.setFont("helvetica", "bold"); doc.text(`Soal ${i + 1} (${q.type})`, margin, y); y += 5;
              doc.setFont("helvetica", "normal");
              
              const qText = stripHTML(q.question || '');
              const splitTitle = doc.splitTextToSize(qText, maxW);
-             doc.text(splitTitle, margin, y); y += (splitTitle.length * 5) + 4;
+             doc.text(splitTitle, margin, y); 
+             y += (splitTitle.length * 4.2) + 2; 
              
              (q.options || []).forEach((opt, oIdx) => {
-                 if (y > 280) { doc.addPage(); y = 20; }
+                 if (y > 275) { doc.addPage(); y = margin; }
                  const isCorrect = (mode === 'pembahasan' && q.answer === oIdx && q.type !== 'TKP');
                  const isTKP = (mode === 'pembahasan' && q.type === 'TKP');
                  
@@ -650,20 +667,22 @@
                  let optText = stripHTML(opt) + optSuffix;
                  
                  const splitOpt = doc.splitTextToSize(optPrefix + optText, maxW - 5);
-                 doc.text(splitOpt, margin + 5, y); y += (splitOpt.length * 5) + 2;
+                 doc.text(splitOpt, margin + 5, y); 
+                 y += (splitOpt.length * 4.2) + 1.5;
                  doc.setTextColor(0, 0, 0); 
              });
              
              if (mode === 'pembahasan' && q.explanation) {
-                 y += 2;
-                 if (y > 280) { doc.addPage(); y = 20; }
+                 y += 1;
+                 if (y > 275) { doc.addPage(); y = margin; }
                  doc.setFont("helvetica", "italic"); doc.setTextColor(100, 100, 100);
                  const expText = "Pembahasan: " + stripHTML(q.explanation);
                  const splitExp = doc.splitTextToSize(expText, maxW - 5);
-                 doc.text(splitExp, margin + 5, y); y += (splitExp.length * 5) + 4;
+                 doc.text(splitExp, margin + 5, y); 
+                 y += (splitExp.length * 4.2) + 2;
                  doc.setTextColor(0, 0, 0);
              }
-             y += 5;
+             y += 7; // ENTER SATU KALI UNTUK JARAK SOAL BERIKUTNYA
          });
          
          doc.save(`Paket_${pkg.package_name.replace(/\s+/g, '_')}_${mode}.pdf`);
@@ -992,11 +1011,61 @@
       else {
         historyEl.innerHTML = myResults.map(r => {
           const p = packages.find(x => x.__backendId === r.package_id); const pName = p ? p.package_name : 'Paket Terhapus';
+          
+          // KALKULASI BENAR/SALAH UNTUK DETAIL RIWAYAT SISWA
+          let bTWK=0, sTWK=0, bTIU=0, sTIU=0, bTKP=0, sTKP=0;
+          let ansArr = [];
+          let qData = [];
+          try { 
+              ansArr = JSON.parse(r.student_answers || '[]'); 
+              qData = p ? JSON.parse(p.questions_data || '[]') : []; 
+          } catch(e){}
+          
+          qData.forEach((q, i) => {
+              const uAns = ansArr[i];
+              const pts = q.points?.[uAns] || 0;
+              if (q.type === 'TKP') {
+                  if (pts === 5) bTKP++; else sTKP++;
+              } else {
+                  if (uAns === q.answer && uAns !== -1 && uAns !== undefined) {
+                      if (q.type === 'TWK') bTWK++;
+                      else if (q.type === 'TIU') bTIU++;
+                  } else {
+                      if (q.type === 'TWK') sTWK++;
+                      else if (q.type === 'TIU') sTIU++;
+                  }
+              }
+          });
+
           return `
-            <div class="modern-card p-4 rounded-lg shadow mt-2 border-l-4 border-amber-500 bg-white">
-              <div class="flex justify-between items-center">
-                <div><div class="font-bold text-gray-800">${esc(pName)}</div><div class="text-xs font-medium text-gray-500 mt-1">${new Date(r.completed_at).toLocaleString('id-ID')}</div></div>
-                <div class="text-right"><div class="font-black text-amber-600 text-xl">Skor: ${r.score_total}</div>${p ? `<button onclick="window.reviewPastExam('${r.__backendId}', '${p.__backendId}')" class="text-xs text-blue-600 hover:text-blue-800 underline font-bold mt-1 inline-block">Lihat Pembahasan</button>` : ''}</div>
+            <div class="modern-card p-4 rounded-lg shadow mt-3 border-l-4 border-amber-500 bg-white">
+              <div class="flex flex-col md:flex-row justify-between md:items-start mb-2 gap-2">
+                <div>
+                  <div class="font-bold text-gray-800 text-lg">${esc(pName)}</div>
+                  <div class="text-xs font-medium text-gray-500 mt-1">${new Date(r.completed_at).toLocaleString('id-ID')}</div>
+                </div>
+                <div class="text-left md:text-right">
+                    <div class="font-black text-amber-600 text-2xl">Skor: ${r.score_total}</div>
+                    ${p ? `<button onclick="window.reviewPastExam('${r.__backendId}', '${p.__backendId}')" class="text-xs text-blue-600 hover:text-blue-800 underline font-bold mt-1 inline-block">Lihat Pembahasan</button>` : ''}
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100">
+                <div class="bg-gray-50 rounded p-2 text-center border border-gray-200">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase">TWK</div>
+                    <div class="font-bold text-gray-800 text-base">${r.score_twk}</div>
+                    <div class="text-[10px] text-gray-500 mt-1"><span class="text-green-600 font-bold">B:${bTWK}</span> | <span class="text-red-600 font-bold">S:${sTWK}</span></div>
+                </div>
+                <div class="bg-gray-50 rounded p-2 text-center border border-gray-200">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase">TIU</div>
+                    <div class="font-bold text-gray-800 text-base">${r.score_tiu}</div>
+                    <div class="text-[10px] text-gray-500 mt-1"><span class="text-green-600 font-bold">B:${bTIU}</span> | <span class="text-red-600 font-bold">S:${sTIU}</span></div>
+                </div>
+                <div class="bg-gray-50 rounded p-2 text-center border border-gray-200">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase">TKP</div>
+                    <div class="font-bold text-gray-800 text-base">${r.score_tkp}</div>
+                    <div class="text-[10px] text-gray-500 mt-1"><span class="text-blue-600 font-bold">Max:${bTKP}</span> | <span class="text-gray-500 font-bold">Min:${sTKP}</span></div>
+                </div>
               </div>
             </div>`;
         }).join('');
@@ -1360,7 +1429,7 @@
 
     function saveExamProgress() {
       if (!examPkg || !loggedInStudent) return;
-      const sessionState = { package_id: examPkg.__backendId, student_pin: loggedInStudent.student_pin, student_name: studentName, examAnswers: examAnswers, examIndex: examIndex, examTimeLeft: examTimeLeft, sessionId: currentSessionId, savedTimestamp: Date.now() };
+      const sessionState = { package_id: examPkg.__backendId, student_pin: loggedInStudent.student_pin, student_name: studentName, examAnswers: examAnswers, examDoubtful: examDoubtful, examIndex: examIndex, examTimeLeft: examTimeLeft, sessionId: currentSessionId, savedTimestamp: Date.now() };
       localStorage.setItem('saved_exam_progress', JSON.stringify(sessionState));
       if (examTimeLeft % 10 === 0 && currentSessionId) { window.dataSdk.update({ __backendId: currentSessionId, type: 'session', last_active: Date.now() }); }
     }
@@ -1373,7 +1442,9 @@
           if (confirm(`Peringatan: Ada ujian yang belum selesai.\nKlik "OK" untuk melanjutkan sesi pengerjaan sekarang.\nKlik "Batal" untuk mereset dan mengulang dari awal (Kesempatan ujian berkurang).`)) {
             loggedInStudent = student; studentName = progress.student_name; examPkg = pkg;
             try { examQuestions = JSON.parse(pkg.questions_data); } catch { examQuestions = []; }
-            examAnswers = progress.examAnswers || new Array(examQuestions.length).fill(-1); examIndex = progress.examIndex || 0; examTimeLeft = progress.examTimeLeft || (pkg.duration_minutes * 60); currentSessionId = progress.sessionId;
+            examAnswers = progress.examAnswers || new Array(examQuestions.length).fill(-1); 
+            examDoubtful = progress.examDoubtful || new Array(examQuestions.length).fill(false);
+            examIndex = progress.examIndex || 0; examTimeLeft = progress.examTimeLeft || (pkg.duration_minutes * 60); currentSessionId = progress.sessionId;
             document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer();
           } else {
             alert("Sesi sebelumnya dibatalkan.");
@@ -1400,17 +1471,49 @@
       const sessionRecord = { type: 'session', student_pin: loggedInStudent.student_pin, student_name: studentName, package_id: pkg.__backendId, start_time: Date.now(), last_active: Date.now() };
       const res = await window.dataSdk.create(sessionRecord); currentSessionId = res.isOk ? res.id : null;
       examPkg = pkg; try { examQuestions = JSON.parse(pkg.questions_data); } catch { examQuestions = []; }
-      examAnswers = new Array(examQuestions.length).fill(-1); examIndex = 0; examTimeLeft = (pkg.duration_minutes || 100) * 60;
+      examAnswers = new Array(examQuestions.length).fill(-1); 
+      examDoubtful = new Array(examQuestions.length).fill(false);
+      examIndex = 0; examTimeLeft = (pkg.duration_minutes || 100) * 60;
       document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer(); saveExamProgress(); 
     }
 
+    // UPDATE RAGU-RAGU LOGIC
+    window.toggleRagu = function() {
+        const cb = document.getElementById('cb-ragu');
+        examDoubtful[examIndex] = cb.checked;
+        renderNavGrid();
+        saveExamProgress();
+    };
+
     function renderNavGrid() {
+      // UPDATE DASHBOARD STATISTIK
+      let countSudah = 0, countBelum = 0, countRagu = 0;
+      examAnswers.forEach((ans, i) => {
+          if (ans !== -1) countSudah++; else countBelum++;
+          if (examDoubtful[i]) countRagu++;
+      });
+      document.getElementById('stat-sudah').textContent = countSudah;
+      document.getElementById('stat-belum').textContent = countBelum;
+      document.getElementById('stat-ragu').textContent = countRagu;
+
       const navGrid = document.getElementById('exam-nav-grid'); if (!navGrid) return;
       navGrid.innerHTML = examQuestions.map((q, i) => {
-        const isCurrent = examIndex === i; const isAnswered = examAnswers[i] !== -1; let bgClass = "";
-        if (isCurrent) bgClass = "bg-amber-500 text-slate-900 font-bold border-2 border-amber-600 ring-2 ring-amber-300 scale-105";
-        else if (isAnswered) bgClass = "bg-green-600 text-white font-medium border border-green-700 hover:bg-green-700";
-        else bgClass = "bg-slate-200 text-gray-700 border border-gray-300 hover:bg-slate-300";
+        const isCurrent = examIndex === i; 
+        const isAnswered = examAnswers[i] !== -1; 
+        const isRagu = examDoubtful[i];
+        let bgClass = "";
+        
+        // Logika pewarnaan
+        if (isCurrent) {
+            bgClass = "bg-blue-600 text-white font-bold ring-4 ring-blue-300 scale-105 z-10";
+        } else if (isRagu) {
+            bgClass = "bg-amber-400 text-slate-900 font-bold border-2 border-amber-500 hover:bg-amber-500";
+        } else if (isAnswered) {
+            bgClass = "bg-green-600 text-white font-medium border border-green-700 hover:bg-green-700";
+        } else {
+            bgClass = "bg-slate-200 text-gray-700 border border-gray-300 hover:bg-slate-300";
+        }
+        
         return `<button onclick="window.jumpToQuestion(${i})" class="w-full aspect-square text-center rounded-lg text-xs transition-all shadow-sm flex items-center justify-center ${bgClass}">${i+1}</button>`;
       }).join('');
     }
@@ -1419,6 +1522,11 @@
 
     function renderQuestion() {
       const q = examQuestions[examIndex]; if (!q) return; renderNavGrid();
+      
+      // Sinkronkan status checkbox Ragu-Ragu
+      const cbRagu = document.getElementById('cb-ragu');
+      if(cbRagu) cbRagu.checked = examDoubtful[examIndex] === true;
+
       document.getElementById('exam-q-type').textContent = `${q.type || 'Soal'} - Nomor ${examIndex+1}`; document.getElementById('exam-progress').textContent = `${examIndex+1} dari ${examQuestions.length}`;
       const imgEl = document.getElementById('exam-q-image'); if (q.image) { imgEl.src = q.image; imgEl.classList.remove('hidden'); } else { imgEl.classList.add('hidden'); imgEl.src = ''; }
       document.getElementById('exam-q-text').innerHTML = renderRichText(q.question || '');
