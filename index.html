@@ -1055,7 +1055,7 @@
       if (!allowed.length) { el.innerHTML = '<div class="bg-gray-800 border border-gray-700 text-amber-100/70 rounded-lg p-6 text-center">Tidak ada paket ujian yang ditugaskan.</div>'; } 
       else {
         el.innerHTML = allowed.map(p => {
-          const pastAttempts = results.filter(r => r.package_id === p.__backendId && r.student_pin === loggedInStudent.student_pin).length;
+          const pastAttempts = results.filter(r => r.package_id === p.__backendId && r.student_pin === loggedInStudent.student_pin && (r.student_name || '').toLowerCase() === loggedInStudent.student_name.toLowerCase()).length;
           const max = p.max_attempts || 1; const sisa = Math.max(0, max - pastAttempts); const isDisabled = sisa <= 0;
           return `<button onclick="window.startExamFromSelect('${p.__backendId}')" ${isDisabled ? 'disabled' : ''} class="w-full modern-card rounded-xl p-5 shadow-lg text-left ${isDisabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'hover:ring-2 hover:ring-amber-400 hover:scale-[1.02]'} transition-all text-gray-800">
             <div class="flex justify-between items-center mb-2"><span class="font-bold text-lg">${esc(p.package_name)}</span><span class="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-800 rounded">${p.duration_minutes} menit</span></div>
@@ -1066,7 +1066,7 @@
       }
 
       const historyEl = document.getElementById('student-history-list');
-      const myResults = results.filter(r => r.student_pin === loggedInStudent.student_pin).sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
+      const myResults = results.filter(r => r.student_pin === loggedInStudent.student_pin && (r.student_name || '').toLowerCase() === loggedInStudent.student_name.toLowerCase()).sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
       if(myResults.length === 0) { historyEl.innerHTML = '<div class="text-center p-4 bg-gray-800/50 rounded-lg text-amber-100/60 text-sm">Belum ada riwayat ujian.</div>'; } 
       else {
         historyEl.innerHTML = myResults.map(r => {
@@ -1538,7 +1538,7 @@
 
     window.startExamFromSelect = function(pkgId) {
       const pkg = packages.find(p => p.__backendId === pkgId); if (!pkg) return;
-      const pastAttempts = results.filter(r => r.package_id === pkgId && r.student_pin === loggedInStudent.student_pin).length;
+      const pastAttempts = results.filter(r => r.package_id === pkgId && r.student_pin === loggedInStudent.student_pin && (r.student_name || '').toLowerCase() === loggedInStudent.student_name.toLowerCase()).length;
       const max = pkg.max_attempts || 1;
       if (pastAttempts >= max) { alert(`Anda telah mencapai batas maksimal pengerjaan (${max} kali).`); return; }
       
@@ -1566,7 +1566,7 @@
     async function checkActiveSessionRecovery() {
       const saved = localStorage.getItem('saved_exam_progress'); if (!saved) return;
       try {
-        const progress = JSON.parse(saved); const student = students.find(s => s.student_pin === progress.student_pin); const pkg = packages.find(p => p.__backendId === progress.package_id);
+        const progress = JSON.parse(saved); const student = students.find(s => s.student_pin === progress.student_pin && s.student_name.toLowerCase() === (progress.student_name || '').toLowerCase()); const pkg = packages.find(p => p.__backendId === progress.package_id);
         if (student && pkg) {
           if (confirm(`Peringatan: Ada ujian yang belum selesai.\nKlik "OK" untuk melanjutkan sesi pengerjaan sekarang.\nKlik "Batal" untuk mereset dan mengulang dari awal (Kesempatan ujian berkurang).`)) {
             loggedInStudent = student; studentName = progress.student_name; examPkg = pkg;
