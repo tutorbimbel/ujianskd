@@ -87,23 +87,23 @@
      <div class="flex justify-end mb-3">
       <button id="btn-add-package" class="px-3 py-2 gradient-btn text-slate-900 rounded-lg text-sm font-medium flex items-center gap-1 shadow-md"><i data-lucide="plus" style="width:16px;height:16px"></i> Paket Baru</button>
      </div>
-     <div id="package-list" class="space-y-3"></div>
+     <div id="package-list" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
      <p id="no-packages" class="text-amber-100/60 text-center py-8 hidden font-medium">Belum ada paket soal</p>
     </div>
     
-    <!-- Students Tab -->
+    <!-- Students Tab (8 kotak per baris) -->
     <div id="tab-students" class="tab-content hidden">
      <div class="flex justify-end mb-3">
       <button id="btn-add-student" class="px-3 py-2 gradient-btn text-slate-900 rounded-lg text-sm font-medium flex items-center gap-1 shadow-md"><i data-lucide="plus" style="width:16px;height:16px"></i> Tambah Siswa</button>
      </div>
-     <div id="student-list" class="space-y-3"></div>
+     <div id="student-list" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2"></div>
      <p id="no-students" class="text-amber-100/60 text-center py-8 hidden font-medium">Belum ada siswa</p>
     </div>
     
-    <!-- Results Tab -->
+    <!-- Results Tab (8 kotak per baris) -->
     <div id="tab-results" class="tab-content hidden">
-     <!-- FILTER RESULTS -->
-     <div class="modern-card p-4 rounded-lg shadow-sm text-gray-800 mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+     <!-- FILTER RESULTS & DOWNLOAD REKAP -->
+     <div class="modern-card p-4 rounded-lg shadow-sm text-gray-800 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
        <div>
          <label class="text-xs font-bold text-gray-600 uppercase">Cari Siswa</label>
          <input type="text" id="filter-res-name" placeholder="Nama siswa..." class="w-full border border-gray-300 rounded px-3 py-2 mt-1 bg-white text-sm" oninput="window.renderResults()">
@@ -118,15 +118,20 @@
          <label class="text-xs font-bold text-gray-600 uppercase">Tanggal Pengerjaan</label>
          <input type="date" id="filter-res-date" class="w-full border border-gray-300 rounded px-3 py-2 mt-1 bg-white text-sm" onchange="window.renderResults()">
        </div>
+       <div>
+         <button type="button" onclick="window.downloadResultsRecapPDF()" class="w-full py-2 px-3 gradient-btn text-slate-900 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 shadow-md">
+           <i data-lucide="download" style="width:16px;height:16px"></i> Unduh Rekapan PDF
+         </button>
+       </div>
      </div>
 
-     <div id="results-list" class="space-y-3"></div>
+     <div id="results-list" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2"></div>
      <p id="no-results" class="text-amber-100/60 text-center py-8 hidden font-medium">Belum ada hasil / tidak ada data yang cocok</p>
     </div>
 
-    <!-- Live Monitoring Tab -->
+    <!-- Live Monitoring Tab (10 kotak per baris) -->
     <div id="tab-monitoring" class="tab-content hidden">
-      <div id="monitoring-list" class="space-y-3"></div>
+      <div id="monitoring-list" class="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-1.5"></div>
       <div id="no-monitoring" class="text-amber-100/60 text-center py-8 font-medium">
         <i data-lucide="activity" style="width:40px;height:40px" class="mx-auto mb-2 opacity-50"></i>
         Tidak ada siswa yang sedang mengerjakan ujian saat ini.
@@ -319,14 +324,27 @@
    
    <!-- Package Selection (Student) -->
    <div id="view-package-select" class="view">
-    <div class="max-w-md mx-auto">
-     <h3 class="font-bold text-xl mb-4 text-amber-400 drop-shadow text-center">Pilih Paket Ujian</h3>
-     <div id="available-packages" class="space-y-3"></div>
-     
-     <div class="mt-10 border-t border-amber-500/30 pt-6">
-      <h4 class="font-bold text-lg mb-4 text-amber-400 drop-shadow text-center">Riwayat Ujian Saya</h4>
-      <div id="student-history-list" class="space-y-3"></div>
+    <div class="max-w-4xl mx-auto">
+     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+      <h3 class="font-bold text-xl text-amber-400 drop-shadow">Pilih Paket Ujian</h3>
+      <button id="btn-to-student-history" type="button" class="px-4 py-2 bg-slate-800 text-amber-400 border border-amber-500 rounded-lg font-semibold text-sm hover:bg-slate-700 shadow-lg flex items-center gap-2 transition">
+       <i data-lucide="history" style="width:16px;height:16px"></i> Riwayat Ujian Saya
+      </button>
      </div>
+     <div id="available-packages" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+    </div>
+   </div>
+
+   <!-- Student History (Separate View) -->
+   <div id="view-student-history" class="view">
+    <div class="max-w-3xl mx-auto">
+     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+      <h3 class="font-bold text-xl text-amber-400 drop-shadow">Riwayat Ujian Saya</h3>
+      <button id="btn-back-from-history" type="button" class="px-4 py-2 bg-slate-700 text-amber-300 rounded-lg font-semibold text-sm hover:bg-slate-600 flex items-center gap-2 shadow-md transition">
+       <i data-lucide="arrow-left" style="width:16px;height:16px"></i> Kembali ke Paket Ujian
+      </button>
+     </div>
+     <div id="student-history-list" class="space-y-3"></div>
     </div>
    </div>
    
@@ -522,6 +540,20 @@
       "landing-welcome": "Selamat Datang di Portal Simulasi", "landing-sub": "Pilih menu login untuk memulai"
     };
 
+    const pkgColorThemes = [
+      { card: 'bg-blue-50/95 border-blue-400 text-blue-950', badge: 'bg-blue-200 text-blue-900', title: 'text-blue-900', sub: 'text-blue-700' },
+      { card: 'bg-emerald-50/95 border-emerald-400 text-emerald-950', badge: 'bg-emerald-200 text-emerald-900', title: 'text-emerald-900', sub: 'text-emerald-700' },
+      { card: 'bg-amber-50/95 border-amber-400 text-amber-950', badge: 'bg-amber-200 text-amber-900', title: 'text-amber-900', sub: 'text-amber-700' },
+      { card: 'bg-purple-50/95 border-purple-400 text-purple-950', badge: 'bg-purple-200 text-purple-900', title: 'text-purple-900', sub: 'text-purple-700' },
+      { card: 'bg-rose-50/95 border-rose-400 text-rose-950', badge: 'bg-rose-200 text-rose-900', title: 'text-rose-900', sub: 'text-rose-700' },
+      { card: 'bg-cyan-50/95 border-cyan-400 text-cyan-950', badge: 'bg-cyan-200 text-cyan-900', title: 'text-cyan-900', sub: 'text-cyan-700' },
+      { card: 'bg-indigo-50/95 border-indigo-400 text-indigo-950', badge: 'bg-indigo-200 text-indigo-900', title: 'text-indigo-900', sub: 'text-indigo-700' },
+      { card: 'bg-orange-50/95 border-orange-400 text-orange-950', badge: 'bg-orange-200 text-orange-900', title: 'text-orange-900', sub: 'text-orange-700' }
+    ];
+
+    const MONITOR_TIMEOUT_MS = 30 * 60 * 1000; // 30 menit batas tidak aktif
+    const cleaningSessionIds = new Set();
+
     let currentAdminPin = '1234'; 
     let allData = [], packages = [], results = [], students = [], activeSessions = [];
     let currentView = 'view-landing', editingPkgId = null, editingStudentId = null, loggedInStudent = null;
@@ -657,7 +689,6 @@
              return tmp.textContent || tmp.innerText || "";
          };
          
-         // Helper function untuk mengambil dimensi gambar asinkron
          const getImageDim = (dataUrl) => {
              return new Promise((resolve) => {
                  const img = new Image();
@@ -681,7 +712,6 @@
              doc.setFont("helvetica", "bold"); doc.text(`Soal ${i + 1} (${q.type})`, margin, y); y += 5;
              doc.setFont("helvetica", "normal");
              
-             // MEMPROSES GAMBAR JIKA ADA
              if (q.image) {
                  try {
                      const format = q.image.includes('image/png') ? 'PNG' : 'JPEG';
@@ -690,7 +720,6 @@
                      let imgW = dims.w;
                      let imgH = dims.h;
                      
-                     // Memastikan gambar tidak melebihi batas (maksimum lebar 120, tinggi 80 di pdf)
                      const maxImgW = Math.min(120, maxW);
                      if (imgW > maxImgW) { imgH = (maxImgW / imgW) * imgH; imgW = maxImgW; }
                      if (imgH > 80) { imgW = (80 / imgH) * imgW; imgH = 80; }
@@ -698,14 +727,13 @@
                      if (y + imgH > 275) { doc.addPage(); y = margin; }
                      
                      doc.addImage(q.image, format, margin, y, imgW, imgH);
-                     y += imgH + 5; // memberikan spasi setelah gambar
+                     y += imgH + 5;
                  } catch (e) { console.error('Gagal meload gambar PDF', e); }
              }
              
              const qText = stripHTML(q.question || '');
              if (qText) {
                  const splitTitle = doc.splitTextToSize(qText, maxW);
-                 // cek batas halaman sebelum menaruh teks
                  if (y + (splitTitle.length * 4.2) > 280) { doc.addPage(); y = margin; }
                  
                  doc.text(splitTitle, margin, y); 
@@ -742,7 +770,7 @@
                  y += (splitExp.length * 4.2) + 2;
                  doc.setTextColor(0, 0, 0);
              }
-             y += 7; // ENTER SATU KALI UNTUK JARAK SOAL BERIKUTNYA
+             y += 7;
          }
          
          doc.save(`Paket_${pkg.package_name.replace(/\s+/g, '_')}_${mode}.pdf`);
@@ -759,11 +787,31 @@
       document.getElementById('go-admin').classList.toggle('hidden', id !== 'view-landing');
     }
 
+    // Pembersihan otomatis sesi live monitoring jika siswa keluar & tidak kembali selama 30 menit
+    function cleanupInactiveSessions(rawSessions) {
+      const now = Date.now();
+      const validSessions = [];
+      rawSessions.forEach(s => {
+        const lastSeen = s.last_active || s.start_time || 0;
+        if (now - lastSeen >= MONITOR_TIMEOUT_MS) {
+          if (s.__backendId && !cleaningSessionIds.has(s.__backendId)) {
+            cleaningSessionIds.add(s.__backendId);
+            window.dataSdk.delete(s).finally(() => {
+              cleaningSessionIds.delete(s.__backendId);
+            });
+          }
+        } else {
+          validSessions.push(s);
+        }
+      });
+      return validSessions;
+    }
+
     function refreshData() {
       packages = allData.filter(d => d.type === 'package');
       results = allData.filter(d => d.type === 'result');
       students = allData.filter(d => d.type === 'student');
-      activeSessions = allData.filter(d => d.type === 'session');
+      activeSessions = cleanupInactiveSessions(allData.filter(d => d.type === 'session'));
       let settings = allData.find(d => d.type === 'settings');
       
       const filterPkgEl = document.getElementById('filter-res-pkg');
@@ -820,31 +868,33 @@
       const noEl = document.getElementById('no-packages');
       if (packages.length === 0) { el.innerHTML = ''; noEl.classList.remove('hidden'); return; }
       noEl.classList.add('hidden');
-      el.innerHTML = packages.map(p => {
+      el.innerHTML = packages.map((p, idx) => {
         const pTWK = p.twk_min !== undefined && p.twk_min !== '' ? p.twk_min : 0;
         const pTIU = p.tiu_min !== undefined && p.tiu_min !== '' ? p.tiu_min : 0;
         const pTKP = p.tkp_min !== undefined && p.tkp_min !== '' ? p.tkp_min : 0;
+        const theme = pkgColorThemes[idx % pkgColorThemes.length];
 
-        return `<div class="modern-card rounded-lg p-4 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between text-gray-800 gap-3">
+        return `<div class="${theme.card} border-2 rounded-xl p-3 shadow-lg aspect-square flex flex-col justify-between transition-all hover:shadow-xl">
           <div>
-            <span class="font-semibold text-gray-800 text-lg">${esc(p.package_name)}</span>
-            <div class="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
-              <span>Waktu: <b>${p.duration_minutes}</b> mnt</span>
-              <span>Batas: <b>${p.max_attempts || 1}</b> kali coba</span>
-              ${p.pin ? `<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs font-bold">PIN: ${esc(p.pin)}</span>` : ''}
-              <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs font-bold">PG: TWK ${pTWK} | TIU ${pTIU} | TKP ${pTKP}</span>
+            <span class="font-bold text-sm leading-tight line-clamp-2 ${theme.title}" title="${esc(p.package_name)}">${esc(p.package_name)}</span>
+            <div class="flex flex-wrap gap-1 mt-1.5">
+              <span class="${theme.badge} px-1.5 py-0.5 rounded text-[10px] font-bold">${p.duration_minutes} mnt</span>
+              <span class="${theme.badge} px-1.5 py-0.5 rounded text-[10px] font-bold">${p.max_attempts || 1}x</span>
+              ${p.pin ? `<span class="bg-slate-800 text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-bold">PIN: ${esc(p.pin)}</span>` : ''}
             </div>
+            <div class="text-[10px] font-bold mt-1.5 ${theme.sub}">PG: ${pTWK} | ${pTIU} | ${pTKP}</div>
           </div>
-          <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
-            <button onclick="window.downloadPkgPDF('${p.__backendId}')" class="px-3 py-1.5 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 flex gap-1 items-center text-sm font-medium shadow-sm"><i data-lucide="download" style="width:14px;height:14px"></i> PDF</button>
-            <button onclick="window.editPkg('${p.__backendId}')" class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex gap-1 items-center text-sm font-medium"><i data-lucide="edit" style="width:14px;height:14px"></i> Edit</button>
-            <button onclick="window.deletePkg('${p.__backendId}', event)" class="px-3 py-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 flex gap-1 items-center text-sm font-medium"><i data-lucide="trash-2" style="width:14px;height:14px"></i> Hapus</button>
+          <div class="grid grid-cols-3 gap-1 pt-2 border-t border-black/10">
+            <button onclick="window.downloadPkgPDF('${p.__backendId}')" class="py-1 px-1 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 flex flex-col items-center justify-center text-[10px] font-bold shadow-sm" title="Unduh PDF"><i data-lucide="download" style="width:12px;height:12px"></i><span>PDF</span></button>
+            <button onclick="window.editPkg('${p.__backendId}')" class="py-1 px-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex flex-col items-center justify-center text-[10px] font-bold" title="Edit Paket"><i data-lucide="edit" style="width:12px;height:12px"></i><span>Edit</span></button>
+            <button onclick="window.deletePkg('${p.__backendId}', event)" class="py-1 px-1 bg-red-100 text-red-700 rounded hover:bg-red-200 flex flex-col items-center justify-center text-[10px] font-bold" title="Hapus Paket"><i data-lucide="trash-2" style="width:12px;height:12px"></i><span>Hapus</span></button>
           </div>
         </div>`;
       }).join('');
       lucide.createIcons();
     }
 
+    // 1A. DATA SISWA: Kotak kecil ke samping, 1 baris memuat 8 data
     function renderStudentList() {
       const el = document.getElementById('student-list');
       const noEl = document.getElementById('no-students');
@@ -858,28 +908,30 @@
         } catch {}
         
         const isActive = s.is_active !== false; 
-        const statusBadge = isActive 
-          ? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold border border-green-300">Aktif</span>` 
-          : `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold border border-red-300">Nonaktif</span>`;
+        const statusDot = isActive 
+          ? `<span class="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0" title="Aktif"></span>` 
+          : `<span class="inline-block w-2 h-2 rounded-full bg-red-500 shrink-0" title="Nonaktif"></span>`;
+        const tooltipInfo = `${s.student_name} | PIN: ${s.student_pin} | Status: ${isActive ? 'Aktif' : 'Nonaktif'}${pkgNames.length ? ' | Paket: ' + pkgNames.join(', ') : ''}`;
 
-        return `<div class="modern-card rounded-lg p-4 shadow-lg flex items-center justify-between text-gray-800 ${!isActive ? 'opacity-70 bg-gray-50' : ''}">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="font-semibold text-gray-800">${esc(s.student_name)}</span>
-                ${statusBadge}
+        return `<div title="${esc(tooltipInfo)}" class="modern-card rounded-lg p-2 shadow-md flex flex-col justify-between aspect-square text-gray-800 border-t-4 ${isActive ? 'border-green-500' : 'border-red-500 opacity-75 bg-gray-100'}">
+          <div class="min-w-0">
+            <div class="flex items-center justify-between gap-1 mb-0.5">
+              ${statusDot}
+              <span class="text-[9px] font-mono font-bold text-gray-500 truncate">${esc(s.student_pin)}</span>
             </div>
-            <span class="text-xs text-gray-500">Kredensial PIN: ${esc(s.student_pin)}</span>
-            ${pkgNames.length ? '<div class="text-xs text-blue-600 font-medium mt-1">Akses Paket: ' + pkgNames.map(n => esc(n)).join(', ') + '</div>' : ''}
+            <div class="font-bold text-[11px] leading-tight text-gray-900 line-clamp-2 break-words">${esc(s.student_name)}</div>
+            <div class="text-[8px] text-blue-600 font-semibold truncate mt-0.5">${pkgNames.length ? pkgNames.length + ' Paket' : 'Semua Paket'}</div>
           </div>
-          <div class="flex gap-2">
-            <button onclick="window.editStudent('${s.__backendId}')" class="p-2 text-blue-600 hover:text-blue-800 bg-blue-50 rounded hover:bg-blue-100"><i data-lucide="edit" style="width:18px;height:18px"></i></button>
-            <button onclick="window.deleteStudent('${s.__backendId}', event)" class="p-2 text-red-600 hover:text-red-800 bg-red-50 rounded hover:bg-red-100"><i data-lucide="trash-2" style="width:18px;height:18px"></i></button>
+          <div class="grid grid-cols-2 gap-1 pt-1 border-t border-gray-200">
+            <button onclick="window.editStudent('${s.__backendId}')" title="Edit Siswa" class="py-0.5 flex items-center justify-center text-blue-600 hover:text-blue-800 bg-blue-50 rounded hover:bg-blue-100"><i data-lucide="edit" style="width:11px;height:11px"></i></button>
+            <button onclick="window.deleteStudent('${s.__backendId}', event)" title="Hapus Siswa" class="py-0.5 flex items-center justify-center text-red-600 hover:text-red-800 bg-red-50 rounded hover:bg-red-100"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
           </div>
         </div>`;
       }).join('');
       lucide.createIcons();
     }
 
+    // 1B. HASIL UJIAN SISWA: Kotak kecil ke samping, warna penanda disamakan dengan warna paket soal
     window.renderResults = function() {
       const el = document.getElementById('results-list');
       const noEl = document.getElementById('no-results');
@@ -901,47 +953,249 @@
       
       const sortedResults = [...filteredResults].sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
       el.innerHTML = sortedResults.map(r => {
-        const pkg = packages.find(p => p.__backendId === r.package_id);
+        const pkgIdx = packages.findIndex(p => p.__backendId === r.package_id);
+        const pkg = pkgIdx >= 0 ? packages[pkgIdx] : null;
+        const pkgName = pkg ? pkg.package_name : 'Paket Terhapus';
+        const theme = pkgIdx >= 0
+          ? pkgColorThemes[pkgIdx % pkgColorThemes.length]
+          : { card: 'bg-gray-100/95 border-gray-400 text-gray-800', badge: 'bg-gray-200 text-gray-700', title: 'text-gray-800', sub: 'text-gray-600' };
+
         const pTWK = pkg && pkg.twk_min !== undefined && pkg.twk_min !== '' ? pkg.twk_min : 0;
         const pTIU = pkg && pkg.tiu_min !== undefined && pkg.tiu_min !== '' ? pkg.tiu_min : 0;
         const pTKP = pkg && pkg.tkp_min !== undefined && pkg.tkp_min !== '' ? pkg.tkp_min : 0;
         const lulus = (r.score_twk >= pTWK && r.score_tiu >= pTIU && r.score_tkp >= pTKP);
+        const dateStr = r.completed_at ? new Date(r.completed_at).toLocaleString('id-ID') : '';
+        const tooltipInfo = `${r.student_name} | ${pkgName} | TWK: ${r.score_twk}, TIU: ${r.score_tiu}, TKP: ${r.score_tkp} | Total: ${r.score_total} (${lulus ? 'Lulus' : 'Tidak Lulus'}) | ${dateStr}`;
 
-        return `<div class="modern-card rounded-lg p-4 shadow-lg text-gray-800 border-l-4 ${lulus ? 'border-green-500' : 'border-red-500'} flex flex-col justify-between gap-3">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <span class="font-bold text-gray-800 text-lg">${esc(r.student_name)}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">${r.completed_at ? new Date(r.completed_at).toLocaleString('id-ID') : ''}</span>
-                <button onclick="window.adminReviewPastExam('${r.__backendId}', '${r.package_id}')" class="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex gap-1 items-center text-xs font-semibold shadow-sm transition"><i data-lucide="eye" style="width:12px;height:12px"></i> Detail</button>
-                <button onclick="window.deleteResult('${r.__backendId}', event)" class="px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 flex gap-1 items-center text-xs font-semibold shadow-sm transition"><i data-lucide="trash-2" style="width:12px;height:12px"></i> Hapus</button>
-              </div>
+        return `<div title="${esc(tooltipInfo)}" class="${theme.card} border-2 rounded-lg p-2 shadow-md flex flex-col justify-between aspect-square transition-all">
+          <div class="min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <div class="font-bold text-[10px] leading-tight ${theme.title} truncate">${esc(r.student_name)}</div>
+              <span class="inline-block w-2 h-2 rounded-full shrink-0 ${lulus ? 'bg-green-500' : 'bg-red-500'}" title="${lulus ? 'Lulus Passing Grade' : 'Tidak Lulus Passing Grade'}"></span>
             </div>
-            <div class="text-sm font-medium text-blue-700 mb-2">${pkg ? esc(pkg.package_name) : 'Paket Terhapus'}</div>
+            <div class="mt-0.5">
+              <span class="inline-block max-w-full text-[8px] font-bold px-1 rounded ${theme.badge} truncate">${esc(pkgName)}</span>
+            </div>
           </div>
           
-          <div class="grid grid-cols-4 gap-2 text-sm text-center">
-            <div class="bg-gray-50 p-2 rounded border border-gray-200">
-              <div class="text-xs text-gray-500">TWK (PG:${pTWK})</div>
-              <div class="font-bold ${r.score_twk >= pTWK ? 'text-green-600':'text-red-600'}">${r.score_twk}</div>
-            </div>
-            <div class="bg-gray-50 p-2 rounded border border-gray-200">
-              <div class="text-xs text-gray-500">TIU (PG:${pTIU})</div>
-              <div class="font-bold ${r.score_tiu >= pTIU ? 'text-green-600':'text-red-600'}">${r.score_tiu}</div>
-            </div>
-            <div class="bg-gray-50 p-2 rounded border border-gray-200">
-              <div class="text-xs text-gray-500">TKP (PG:${pTKP})</div>
-              <div class="font-bold ${r.score_tkp >= pTKP ? 'text-green-600':'text-red-600'}">${r.score_tkp}</div>
-            </div>
-            <div class="bg-amber-50 p-2 rounded border border-amber-200">
-              <div class="text-xs text-amber-700">Total</div>
-              <div class="font-bold text-amber-600 text-lg">${r.score_total}</div>
-            </div>
+          <div class="text-center my-0.5">
+            <div class="font-black text-sm leading-none ${theme.title}">${r.score_total}</div>
+            <div class="text-[8px] font-semibold ${theme.sub} mt-0.5 truncate">${r.score_twk}|${r.score_tiu}|${r.score_tkp}</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1 pt-1 border-t border-black/10">
+            <button onclick="window.adminReviewPastExam('${r.__backendId}', '${r.package_id}')" title="Detail Pembahasan" class="py-0.5 bg-white/80 text-blue-700 rounded hover:bg-white flex items-center justify-center transition shadow-sm"><i data-lucide="eye" style="width:11px;height:11px"></i></button>
+            <button onclick="window.deleteResult('${r.__backendId}', event)" title="Hapus Hasil" class="py-0.5 bg-white/80 text-red-700 rounded hover:bg-white flex items-center justify-center transition shadow-sm"><i data-lucide="trash-2" style="width:11px;height:11px"></i></button>
           </div>
         </div>`;
       }).join('');
       lucide.createIcons();
-    }
+    };
+
+    // DOWNLOAD REKAPAN HASIL UJIAN SISWA (PDF) BERDASARKAN PAKET SOAL PILIHAN ADMIN
+    window.downloadResultsRecapPDF = function() {
+      const filterPkg = document.getElementById('filter-res-pkg').value;
+      if (!filterPkg) {
+        alert('Silakan pilih Paket Soal terlebih dahulu pada kolom Filter Paket Soal untuk mengunduh rekapan PDF.');
+        document.getElementById('filter-res-pkg').focus();
+        return;
+      }
+
+      const pkg = packages.find(p => p.__backendId === filterPkg);
+      if (!pkg) {
+        alert('Paket soal tidak ditemukan.');
+        return;
+      }
+
+      const filterName = document.getElementById('filter-res-name').value.toLowerCase();
+      const filterDate = document.getElementById('filter-res-date').value;
+
+      const targetResults = results.filter(r => {
+        if (r.package_id !== filterPkg) return false;
+        if (filterName && !(r.student_name || '').toLowerCase().includes(filterName)) return false;
+        if (filterDate && r.completed_at && !r.completed_at.startsWith(filterDate)) return false;
+        return true;
+      }).sort((a, b) => (b.score_total - a.score_total) || (b.score_tkp - a.score_tkp) || (b.score_tiu - a.score_tiu) || (b.score_twk - a.score_twk));
+
+      if (targetResults.length === 0) {
+        alert('Tidak ada data hasil ujian siswa untuk paket soal yang dipilih.');
+        return;
+      }
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const margin = 15;
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const contentWidth = pageWidth - margin * 2;
+        let y = margin;
+
+        const pTWK = pkg.twk_min !== undefined && pkg.twk_min !== '' ? Number(pkg.twk_min) : 0;
+        const pTIU = pkg.tiu_min !== undefined && pkg.tiu_min !== '' ? Number(pkg.tiu_min) : 0;
+        const pTKP = pkg.tkp_min !== undefined && pkg.tkp_min !== '' ? Number(pkg.tkp_min) : 0;
+        let qsCount = 0;
+        try { qsCount = JSON.parse(pkg.questions_data || '[]').length; } catch {}
+
+        let countLulus = 0;
+        let totalSum = 0;
+        let highestScore = 0;
+        targetResults.forEach(r => {
+          const isPass = (r.score_twk >= pTWK && r.score_tiu >= pTIU && r.score_tkp >= pTKP);
+          if (isPass) countLulus++;
+          totalSum += Number(r.score_total || 0);
+          if (Number(r.score_total || 0) > highestScore) highestScore = Number(r.score_total || 0);
+        });
+        const countTidakLulus = targetResults.length - countLulus;
+        const avgScore = (totalSum / targetResults.length).toFixed(1);
+
+        const appTitle = document.querySelector('[data-template-id="app-title"]')?.textContent || 'Simulator CAT CPNS';
+
+        // Header Dokumen
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(15, 23, 42);
+        doc.text('REKAPAN HASIL UJIAN SISWA', pageWidth / 2, y, { align: 'center' });
+        y += 6;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(appTitle, pageWidth / 2, y, { align: 'center' });
+        y += 6;
+
+        doc.setDrawColor(212, 175, 55);
+        doc.setLineWidth(0.7);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 6;
+
+        // Informasi Paket Soal
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 41, 59);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Paket Soal       : ${pkg.package_name}`, margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Jumlah Soal      : ${qsCount} Soal | Durasi: ${pkg.duration_minutes} Menit`, margin, y);
+        y += 5;
+        doc.text(`Passing Grade    : TWK = ${pTWK} | TIU = ${pTIU} | TKP = ${pTKP}`, margin, y);
+        y += 5;
+        doc.text(`Tanggal Unduh    : ${new Date().toLocaleString('id-ID')}${filterDate ? ' (Filter Tgl: ' + filterDate + ')' : ''}`, margin, y);
+        y += 6;
+
+        // Kotak Ringkasan Statistik
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, y, contentWidth, 12, 1.5, 1.5, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(15, 23, 42);
+        doc.text(
+          `Total Peserta: ${targetResults.length}   |   Lulus PG: ${countLulus}   |   Tidak Lulus PG: ${countTidakLulus}   |   Tertinggi: ${highestScore}   |   Rata-rata: ${avgScore}`,
+          pageWidth / 2,
+          y + 7.5,
+          { align: 'center' }
+        );
+        y += 17;
+
+        // Definisi Kolom Tabel (Total = 180mm)
+        const cols = [
+          { label: 'No', width: 10, align: 'center' },
+          { label: 'Nama Siswa', width: 48, align: 'left' },
+          { label: 'Waktu Selesai', width: 34, align: 'center' },
+          { label: 'TWK', width: 14, align: 'center' },
+          { label: 'TIU', width: 14, align: 'center' },
+          { label: 'TKP', width: 14, align: 'center' },
+          { label: 'Total', width: 16, align: 'center' },
+          { label: 'Status PG', width: 30, align: 'center' }
+        ];
+
+        const drawTableHeader = (posY) => {
+          doc.setFillColor(15, 23, 42);
+          doc.rect(margin, posY, contentWidth, 8, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(8.5);
+          doc.setTextColor(255, 255, 255);
+
+          let curX = margin;
+          cols.forEach(c => {
+            const textX = c.align === 'center' ? curX + c.width / 2 : curX + 2;
+            doc.text(c.label, textX, posY + 5.4, { align: c.align });
+            curX += c.width;
+          });
+          return posY + 8;
+        };
+
+        y = drawTableHeader(y);
+
+        // Isi Baris Tabel
+        const rowH = 7.5;
+        targetResults.forEach((r, idx) => {
+          if (y + rowH > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+            y = drawTableHeader(y);
+          }
+
+          const isPass = (r.score_twk >= pTWK && r.score_tiu >= pTIU && r.score_tkp >= pTKP);
+          const dt = r.completed_at
+            ? new Date(r.completed_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : '-';
+
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(margin, y, contentWidth, rowH, 'F');
+          }
+
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.2);
+          doc.rect(margin, y, contentWidth, rowH, 'S');
+
+          const nameFitted = doc.splitTextToSize(String(r.student_name || '-'), cols[1].width - 4)[0] || '-';
+          const rowValues = [
+            String(idx + 1),
+            nameFitted,
+            dt,
+            String(r.score_twk ?? 0),
+            String(r.score_tiu ?? 0),
+            String(r.score_tkp ?? 0),
+            String(r.score_total ?? 0),
+            isPass ? 'LULUS' : 'TIDAK LULUS'
+          ];
+
+          let curX = margin;
+          rowValues.forEach((val, cIdx) => {
+            const c = cols[cIdx];
+            if (cIdx === 6) {
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(15, 23, 42);
+            } else if (cIdx === 7) {
+              doc.setFont('helvetica', 'bold');
+              if (isPass) doc.setTextColor(22, 163, 74);
+              else doc.setTextColor(220, 38, 38);
+            } else {
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor(30, 41, 59);
+            }
+
+            doc.setFontSize(8);
+            const textX = c.align === 'center' ? curX + c.width / 2 : curX + 2;
+            doc.text(val, textX, y + 5, { align: c.align });
+            curX += c.width;
+          });
+
+          y += rowH;
+        });
+
+        const safePkgName = pkg.package_name.replace(/[^a-zA-Z0-9_-]/g, '_');
+        doc.save(`Rekapan_Hasil_${safePkgName}.pdf`);
+      } catch (e) {
+        console.error(e);
+        alert('Gagal mengunduh rekapan hasil ujian PDF.');
+      }
+    };
 
     document.getElementById('form-admin-appearance').onsubmit = async (e) => {
       e.preventDefault();
@@ -1052,22 +1306,36 @@
       let allowedIds = []; try { allowedIds = JSON.parse(loggedInStudent.allowed_packages || '[]'); } catch {}
       const allowed = allowedIds.length ? packages.filter(p => allowedIds.includes(p.__backendId)) : packages;
       const el = document.getElementById('available-packages');
-      if (!allowed.length) { el.innerHTML = '<div class="bg-gray-800 border border-gray-700 text-amber-100/70 rounded-lg p-6 text-center">Tidak ada paket ujian yang ditugaskan.</div>'; } 
+      if (!allowed.length) { el.innerHTML = '<div class="col-span-2 sm:col-span-4 bg-gray-800 border border-gray-700 text-amber-100/70 rounded-lg p-6 text-center">Tidak ada paket ujian yang ditugaskan.</div>'; } 
       else {
-        el.innerHTML = allowed.map(p => {
+        el.innerHTML = allowed.map((p, idx) => {
           const pastAttempts = results.filter(r => r.package_id === p.__backendId && r.student_pin === loggedInStudent.student_pin && (r.student_name || '').toLowerCase() === loggedInStudent.student_name.toLowerCase()).length;
           const max = p.max_attempts || 1; const sisa = Math.max(0, max - pastAttempts); const isDisabled = sisa <= 0;
-          return `<button onclick="window.startExamFromSelect('${p.__backendId}')" ${isDisabled ? 'disabled' : ''} class="w-full modern-card rounded-xl p-5 shadow-lg text-left ${isDisabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'hover:ring-2 hover:ring-amber-400 hover:scale-[1.02]'} transition-all text-gray-800">
-            <div class="flex justify-between items-center mb-2"><span class="font-bold text-lg">${esc(p.package_name)}</span><span class="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-800 rounded">${p.duration_minutes} menit</span></div>
-            <div class="flex items-center text-sm font-medium ${sisa > 0 ? 'text-blue-600' : 'text-red-500'}"><i data-lucide="info" style="width:14px;height:14px" class="mr-1"></i> Sisa Kesempatan: ${sisa} / ${max} kali</div>
-            ${isDisabled ? '<div class="text-xs text-red-600 font-semibold mt-2 border-t pt-2 border-gray-200">Anda telah mencapai batas pengerjaan ujian.</div>' : ''}
+          const globalIdx = packages.findIndex(x => x.__backendId === p.__backendId);
+          const theme = pkgColorThemes[(globalIdx >= 0 ? globalIdx : idx) % pkgColorThemes.length];
+
+          return `<button onclick="window.startExamFromSelect('${p.__backendId}')" ${isDisabled ? 'disabled' : ''} class="w-full aspect-square rounded-xl p-3 shadow-lg text-left border-2 flex flex-col justify-between ${isDisabled ? 'opacity-60 cursor-not-allowed bg-gray-200 border-gray-400 text-gray-700' : `${theme.card} hover:ring-2 hover:ring-amber-400 hover:scale-[1.02]`} transition-all">
+            <div>
+              <div class="flex items-center justify-between gap-1 mb-1.5">
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isDisabled ? 'bg-gray-300 text-gray-700' : theme.badge}">${p.duration_minutes} mnt</span>
+                ${p.pin ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 flex items-center gap-0.5"><i data-lucide="lock" style="width:10px;height:10px"></i> PIN</span>` : ''}
+              </div>
+              <div class="font-bold text-sm leading-snug line-clamp-3 ${isDisabled ? 'text-gray-700' : theme.title}" title="${esc(p.package_name)}">${esc(p.package_name)}</div>
+            </div>
+            <div class="pt-2 border-t border-black/10">
+              <div class="flex items-center text-[11px] font-bold ${sisa > 0 ? theme.sub : 'text-red-600'}"><i data-lucide="info" style="width:12px;height:12px" class="mr-1 shrink-0"></i> Sisa: ${sisa}/${max}x</div>
+              ${isDisabled ? '<div class="text-[10px] text-red-600 font-bold mt-0.5 leading-tight">Kesempatan habis</div>' : '<div class="text-[10px] font-semibold opacity-75 mt-0.5">Klik untuk mulai</div>'}
+            </div>
           </button>`;
         }).join('');
       }
+      lucide.createIcons(); showView('view-package-select');
+    }
 
+    function renderStudentHistory() {
       const historyEl = document.getElementById('student-history-list');
       const myResults = results.filter(r => r.student_pin === loggedInStudent.student_pin && (r.student_name || '').toLowerCase() === loggedInStudent.student_name.toLowerCase()).sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
-      if(myResults.length === 0) { historyEl.innerHTML = '<div class="text-center p-4 bg-gray-800/50 rounded-lg text-amber-100/60 text-sm">Belum ada riwayat ujian.</div>'; } 
+      if(myResults.length === 0) { historyEl.innerHTML = '<div class="text-center p-6 bg-gray-800/50 rounded-lg text-amber-100/60 text-sm">Belum ada riwayat ujian.</div>'; } 
       else {
         historyEl.innerHTML = myResults.map(r => {
           const p = packages.find(x => x.__backendId === r.package_id); const pName = p ? p.package_name : 'Paket Terhapus';
@@ -1129,8 +1397,17 @@
             </div>`;
         }).join('');
       }
-      lucide.createIcons(); showView('view-package-select');
+      lucide.createIcons();
     }
+
+    document.getElementById('btn-to-student-history').onclick = () => {
+      renderStudentHistory();
+      showView('view-student-history');
+    };
+
+    document.getElementById('btn-back-from-history').onclick = () => {
+      showPackageSelection();
+    };
 
     window.handleLogoUpload = function(event) {
       const file = event.target.files[0];
@@ -1200,10 +1477,13 @@
       } catch(e) { alert("Gagal memuat pembahasan."); }
     };
 
+    // 2. LIVE MONITORING: Auto-reset 30 menit & kotak kecil 10 data per baris
     function renderMonitoring() {
       const el = document.getElementById('monitoring-list');
       const noEl = document.getElementById('no-monitoring');
       const badge = document.getElementById('monitor-badge');
+
+      activeSessions = cleanupInactiveSessions(activeSessions);
 
       if (activeSessions.length > 0) { badge.classList.remove('hidden'); badge.textContent = activeSessions.length; } 
       else { badge.classList.add('hidden'); }
@@ -1213,31 +1493,41 @@
       
       el.innerHTML = activeSessions.map(s => {
         const pkg = packages.find(p => p.__backendId === s.package_id);
-        const elapsed = Math.floor((Date.now() - s.start_time) / 60000);
+        const pkgName = pkg ? pkg.package_name : 'Tidak diketahui';
+        const elapsed = Math.max(0, Math.floor((Date.now() - (s.start_time || Date.now())) / 60000));
+        const tooltipInfo = `${s.student_name} | Paket: ${pkgName} | Waktu Berjalan: ${elapsed} Menit`;
+
         return `
-        <div class="modern-card rounded-lg p-4 shadow-lg text-gray-800 border-l-4 border-blue-500 flex justify-between items-center">
-          <div>
-            <div class="font-bold text-lg">${esc(s.student_name)} <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2 font-bold uppercase tracking-wider"><i data-lucide="radio" style="width:12px;height:12px" class="inline mr-1"></i> Sedang Mengerjakan</span></div>
-            <div class="text-sm text-gray-500 mt-1">Paket: <span class="font-semibold text-gray-700">${pkg ? esc(pkg.package_name) : 'Tidak diketahui'}</span></div>
+        <div title="${esc(tooltipInfo)}" class="modern-card rounded-lg p-1.5 shadow-md text-gray-800 border-t-4 border-blue-500 flex flex-col justify-between aspect-square text-center">
+          <div class="flex items-center justify-between gap-0.5">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-ping shrink-0"></span>
+            <span class="font-bold text-amber-600 text-[9px] leading-none">${elapsed}m</span>
           </div>
-          <div class="text-right">
-            <div class="text-xs text-gray-500 uppercase font-semibold">Waktu Berjalan</div>
-            <div class="font-bold text-amber-600 text-lg">${elapsed} Menit</div>
-          </div>
+          <div class="font-bold text-[10px] leading-tight text-gray-900 line-clamp-2 break-words my-0.5">${esc(s.student_name)}</div>
+          <div class="text-[8px] font-semibold text-blue-700 truncate">${esc(pkgName)}</div>
         </div>`;
       }).join('');
       lucide.createIcons();
     }
 
+    // Cek berkala setiap 15 detik untuk mereset status live monitoring siswa yang keluar >= 30 menit
+    setInterval(() => {
+      const beforeCount = activeSessions.length;
+      activeSessions = cleanupInactiveSessions(activeSessions);
+      if (currentView === 'view-admin' || beforeCount !== activeSessions.length) {
+        renderMonitoring();
+      }
+    }, 15000);
+
     window.deleteResult = async function(id, event) {
       const r = allData.find(x => x.__backendId === id); if (!r) return;
       const btn = event.target.closest('button');
-      if (!btn.dataset.confirm) {
-        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-[10px] font-bold text-white">Yakin?</span>';
-        btn.classList.replace('bg-red-100','bg-red-600'); btn.classList.add('text-white');
+      if (!btn.dataset.confirm) { 
+        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-[9px] font-bold text-white">Yakin?</span>';
+        btn.classList.replace('bg-white/80','bg-red-600'); btn.classList.add('text-white');
         setTimeout(() => {
           delete btn.dataset.confirm;
-          if(btn) { btn.classList.replace('bg-red-600','bg-red-100'); btn.classList.remove('text-white'); btn.innerHTML = '<i data-lucide="trash-2" style="width:12px;height:12px"></i> Hapus'; lucide.createIcons(); }
+          if(btn) { btn.classList.replace('bg-red-600','bg-white/80'); btn.classList.remove('text-white'); btn.innerHTML = '<i data-lucide="trash-2" style="width:11px;height:11px"></i>'; lucide.createIcons(); }
         }, 3000);
         return;
       }
@@ -1277,7 +1567,6 @@
             let bgClass = window.currentEditIndex === idx ? "bg-blue-600 text-white font-bold ring-2 ring-blue-300 scale-105 z-10" : "bg-slate-200 text-gray-700 hover:bg-slate-300";
             html += `<button type="button" onclick="window.jumpToEditQuestion(${idx})" class="w-full aspect-square text-center rounded-lg text-xs transition-all flex items-center justify-center ${bgClass} relative">${idx + 1}</button>`;
             
-            // Sembunyikan semua kecuali yang sedang diedit
             if (window.currentEditIndex === idx) {
                 block.classList.remove('hidden');
             } else {
@@ -1475,8 +1764,8 @@
       const p = allData.find(x => x.__backendId === id); if (!p) return;
       const btn = event.target.closest('button');
       if (!btn.dataset.confirm) { 
-        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-xs font-bold text-white">Yakin Hapus?</span>'; btn.classList.replace('bg-red-100','bg-red-600');
-        setTimeout(() => { delete btn.dataset.confirm; if(btn) { btn.classList.replace('bg-red-600','bg-red-100'); btn.innerHTML = 'Hapus'; lucide.createIcons(); } }, 3000); 
+        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-[10px] font-bold text-white">Yakin?</span>'; btn.classList.replace('bg-red-100','bg-red-600');
+        setTimeout(() => { delete btn.dataset.confirm; if(btn) { btn.classList.replace('bg-red-600','bg-red-100'); btn.innerHTML = '<i data-lucide="trash-2" style="width:12px;height:12px"></i><span>Hapus</span>'; lucide.createIcons(); } }, 3000); 
         return; 
       }
       btn.innerHTML = '...';
@@ -1522,8 +1811,8 @@
       const s = allData.find(x => x.__backendId === id); if (!s) return;
       const btn = event.target.closest('button');
       if (!btn.dataset.confirm) { 
-        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-xs text-white">Yakin?</span>'; btn.classList.replace('text-red-600','bg-red-600'); btn.classList.add('text-white');
-        setTimeout(() => { delete btn.dataset.confirm; if(btn) { btn.classList.replace('bg-red-600', 'text-red-600'); btn.classList.remove('text-white'); btn.innerHTML = '<i data-lucide="trash-2" style="width:18px;height:18px"></i>'; lucide.createIcons(); } }, 3000); return; 
+        btn.dataset.confirm = '1'; btn.innerHTML = '<span class="text-[9px] font-bold text-white">Yakin?</span>'; btn.classList.replace('bg-red-50','bg-red-600'); btn.classList.replace('text-red-600','text-white');
+        setTimeout(() => { delete btn.dataset.confirm; if(btn) { btn.classList.replace('bg-red-600', 'bg-red-50'); btn.classList.replace('text-white', 'text-red-600'); btn.innerHTML = '<i data-lucide="trash-2" style="width:11px;height:11px"></i>'; lucide.createIcons(); } }, 3000); return; 
       }
       await window.dataSdk.delete(s);
     };
@@ -1556,12 +1845,20 @@
       else { document.getElementById('pkg-pin-verify-error').classList.remove('hidden'); }
     };
 
-    function saveExamProgress() {
+    function saveExamProgress(forceHeartbeat = false) {
       if (!examPkg || !loggedInStudent) return;
       const sessionState = { package_id: examPkg.__backendId, student_pin: loggedInStudent.student_pin, student_name: studentName, examAnswers: examAnswers, examDoubtful: examDoubtful, examIndex: examIndex, examTimeLeft: examTimeLeft, sessionId: currentSessionId, savedTimestamp: Date.now() };
       localStorage.setItem('saved_exam_progress', JSON.stringify(sessionState));
-      if (examTimeLeft % 10 === 0 && currentSessionId) { window.dataSdk.update({ __backendId: currentSessionId, type: 'session', last_active: Date.now() }); }
+      if ((forceHeartbeat || examTimeLeft % 10 === 0) && currentSessionId) {
+        window.dataSdk.update({ __backendId: currentSessionId, type: 'session', last_active: Date.now() });
+      }
     }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentView === 'view-exam' && currentSessionId) {
+        saveExamProgress(true);
+      }
+    });
 
     async function checkActiveSessionRecovery() {
       const saved = localStorage.getItem('saved_exam_progress'); if (!saved) return;
@@ -1574,7 +1871,17 @@
             examAnswers = progress.examAnswers || new Array(examQuestions.length).fill(-1); 
             examDoubtful = progress.examDoubtful || new Array(examQuestions.length).fill(false);
             examIndex = progress.examIndex || 0; examTimeLeft = progress.examTimeLeft || (pkg.duration_minutes * 60); currentSessionId = progress.sessionId;
-            document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer();
+            
+            // Perbarui atau buat ulang sesi live monitoring saat siswa masuk kembali
+            const existingSession = activeSessions.find(s => s.__backendId === currentSessionId);
+            if (existingSession) {
+              await window.dataSdk.update({ __backendId: currentSessionId, type: 'session', last_active: Date.now() });
+            } else {
+              const recreated = await window.dataSdk.create({ type: 'session', student_pin: loggedInStudent.student_pin, student_name: studentName, package_id: pkg.__backendId, start_time: Date.now(), last_active: Date.now() });
+              currentSessionId = recreated.isOk ? recreated.id : null;
+            }
+
+            document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer(); saveExamProgress(true);
           } else {
             alert("Sesi sebelumnya dibatalkan.");
             await submitAbandonedExam(progress, pkg); localStorage.removeItem('saved_exam_progress');
@@ -1597,13 +1904,18 @@
 
     async function startExam(pkg) {
       document.getElementById('exam-pkg-name').textContent = "Mempersiapkan ujian...";
+      const oldSessions = activeSessions.filter(s => s.student_pin === loggedInStudent.student_pin && (s.student_name || '').toLowerCase() === studentName.toLowerCase());
+      for (const oldS of oldSessions) {
+        await window.dataSdk.delete(oldS);
+      }
+
       const sessionRecord = { type: 'session', student_pin: loggedInStudent.student_pin, student_name: studentName, package_id: pkg.__backendId, start_time: Date.now(), last_active: Date.now() };
       const res = await window.dataSdk.create(sessionRecord); currentSessionId = res.isOk ? res.id : null;
       examPkg = pkg; try { examQuestions = JSON.parse(pkg.questions_data); } catch { examQuestions = []; }
       examAnswers = new Array(examQuestions.length).fill(-1); 
       examDoubtful = new Array(examQuestions.length).fill(false);
       examIndex = 0; examTimeLeft = (pkg.duration_minutes || 100) * 60;
-      document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer(); saveExamProgress(); 
+      document.getElementById('exam-pkg-name').textContent = pkg.package_name; showView('view-exam'); renderQuestion(); startTimer(); saveExamProgress(true); 
     }
 
     window.toggleRagu = function() {
@@ -1833,7 +2145,7 @@
       try {
         examQuestions = JSON.parse(pkg.questions_data); examAnswers = JSON.parse(res.student_answers || '[]');
         if(examAnswers.length === 0) { alert("Data jawaban tidak tersedia."); return; }
-        renderReview(); document.getElementById('btn-close-review').onclick = () => showView('view-package-select'); showView('view-exam-review');
+        renderReview(); document.getElementById('btn-close-review').onclick = () => { renderStudentHistory(); showView('view-student-history'); }; showView('view-exam-review');
       } catch(e) { alert("Gagal memuat pembahasan."); }
     };
 
@@ -1850,6 +2162,8 @@
       onDataChanged(data) {
         allData = data; refreshData();
         if (currentView === 'view-admin') { renderPackageList(); renderStudentList(); renderResults(); renderMonitoring(); }
+        if (currentView === 'view-package-select' && loggedInStudent) { showPackageSelection(); }
+        if (currentView === 'view-student-history' && loggedInStudent) { renderStudentHistory(); }
         if (!recoveryChecked && packages.length > 0 && students.length > 0) {
           recoveryChecked = true; checkActiveSessionRecovery();
         }
